@@ -1,0 +1,11 @@
+*Private*
+*private*
+*scenario*.json
+*.xlsx
+*.xlsm
+*.xls
+*.pdf
+*.pptx
+*.csv
+*.zip
+.DS_Store
