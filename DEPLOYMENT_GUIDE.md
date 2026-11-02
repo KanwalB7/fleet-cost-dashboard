@@ -2,7 +2,7 @@
 
 ## 1. Know what you are publishing
 
-The download contains the public-safe dashboard code. **Do not publish the separately supplied private working-case JSON**, the original Enterprise income statements, or confidential dealership notes. GitHub Pages hosts a public-facing website; repository visibility does not guarantee that the Pages website itself is private.
+The download contains the public-safe dashboard code. **Do not publish the separately supplied private working-case JSON** or confidential dealership notes. GitHub Pages hosts a public-facing website; repository visibility does not guarantee that the Pages website itself is private.
 
 ## 2. Test locally (no account required)
 
