@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10191a">
+  <meta name="description" content="Interactive free-loaner fleet ownership vs rental financial model">
+  <title>Fleet Economics | Interactive Cost Simulator</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="wordmark" href="#top" aria-label="Fleet Economics home"><span class="mark">F<span class="mark-dot">•</span></span><span>FLEET<span class="wordmark-light">ECONOMICS</span></span></a>
+      <span class="topbar-tag"><span class="live-dot"></span> LIVE SCENARIO MODEL</span>
+      <div class="topbar-actions">
+        <button id="presentationButton" class="button button-minimal" type="button" title="Hide or show the input controls">◫ <span>Presentation view</span></button>
+        <button id="printButton" class="button button-minimal" type="button">▤ <span>Print / PDF</span></button>
+        <button id="downloadCSV" class="button button-accent" type="button">↓ Export numbers</button>
+      </div>
+    </header>
+
+    <div class="workspace" id="top">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-heading"><div><div class="eyebrow">SCENARIO CONTROLS</div><h2>Model assumptions</h2><p>Change any field. Every number and chart recalculates instantly.</p></div><button id="closeSidebar" class="icon-button hide-desktop" type="button" aria-label="Close assumptions">✕</button></div>
+        <div class="year-preset-box"><span class="mini-label">HOLDING PERIOD</span><div class="year-preset" role="group" aria-label="Holding-period presets"><button type="button" data-year="2">2 years</button><button type="button" data-year="3">3 years</button><button type="button" data-year="4">4 years</button></div></div>
+        <div id="controlGroups" class="control-groups"></div>
+        <div class="sidebar-actions"><button id="resetButton" class="button button-secondary" type="button">Reset to demo</button><button id="exportScenario" class="button button-secondary" type="button">Save scenario .json</button><label for="importScenario" class="button button-accent file-label">Load scenario .json</label><input type="file" id="importScenario" accept=".json,application/json" hidden></div>
+        <p class="privacy-note">🔒 No cloud database or analytics. Scenario JSON is read locally by your browser; uploaded values are not sent to a server by this app. Do not commit confidential assumptions to a public repository.</p>
+      </aside>
+
+      <main class="dashboard" id="dashboard">
+        <div class="dashboard-head"><div><span class="eyebrow eyebrow-green">FINANCIAL DECISION LAB <span class="eyebrow-divider">/</span> CAD</span><h1><span id="clientHeading">Fleet ownership</span><br><em>versus rental</em></h1><p class="subtitle" id="dashboardSubtitle">A live financial comparison of owning free customer loaners versus outsourcing replacement rentals.</p></div><div class="head-side"><div class="head-year"><span>ACTIVE HOLD</span><strong id="holdBadge">3 YEARS</strong></div><div id="modeBadge" class="mode-pill">Illustrative assumptions</div></div></div>
+
+        <div class="mobile-controls-row"><button class="button button-accent" id="showControlsMobile" type="button">☷ Adjust assumptions</button></div>
+
+        <section class="hero-kpis" aria-label="Key performance indicators">
+          <article class="kpi kpi-primary"><span class="kpi-icon">◎</span><div class="kpi-label">OWNED FLEET · ANNUAL COST</div><div class="kpi-value" id="kpiOwned">—</div><div class="kpi-foot"><span id="kpiPerCar">—</span> per car / year</div></article>
+          <article class="kpi"><span class="kpi-icon">↘</span><div class="kpi-label">EXPECTED RESALE / VEHICLE</div><div class="kpi-value" id="kpiResale">—</div><div class="kpi-foot"><span id="kpiRetention">—</span> purchase value retained</div></article>
+          <article class="kpi"><span class="kpi-icon">↗</span><div class="kpi-label">RENTAL PROGRAM · ANNUAL COST</div><div class="kpi-value" id="kpiRental">—</div><div class="kpi-foot" id="kpiRentalFoot">— annual billable days</div></article>
+          <article class="kpi kpi-gap"><span class="kpi-icon">≋</span><div class="kpi-label">FINANCIAL GAP BEFORE REFERRALS</div><div class="kpi-value" id="kpiGap">—</div><div class="kpi-foot" id="kpiGapFoot">—</div></article>
+        </section>
+
+        <section class="dash-grid top-charts">
+          <article class="panel"><div class="panel-head"><div><span class="panel-number">01 / OWNERSHIP</span><h2>Where the money goes</h2><p>Annual cost for the full owned fleet</p></div><div class="panel-stat"><strong id="costPerMonth">—</strong><span>per car / month</span></div></div><div class="donut-content"><div class="donut-area"><svg id="donutChart" viewBox="0 0 280 280" role="img" aria-label="Annual ownership cost allocation"></svg><div class="donut-center"><span>TOTAL / YEAR</span><strong id="donutTotal">—</strong><small id="donutVehicleCount">40 vehicles</small></div></div><div class="legend" id="ownershipLegend"></div></div></article>
+          <article class="panel"><div class="panel-head"><div><span class="panel-number">02 / COMPARISON</span><h2>Own versus outsource</h2><p>Annual shop cost, before reciprocal business</p></div><div class="panel-stat"><strong id="breakEvenRate">—</strong><span>break-even daily rate</span></div></div><div id="compareBars" class="compare-bars"></div><div class="compare-insight" id="compareInsight"></div></article>
+        </section>
+
+        <section class="dash-grid mid-charts">
+          <article class="panel"><div class="panel-head"><div><span class="panel-number">03 / RESALE STRATEGY</span><h2>2-year · 3-year · 4-year</h2><p>Annualized cost of the current owned fleet</p></div><div class="panel-stat subtle-label">ALL OTHER INPUTS HELD CONSTANT</div></div><div id="holdingChart" class="holding-chart"></div><div class="small-note">The default comparison uses separate 2-year (70%) and 4-year (57%) retention assumptions, with 1% compounded monthly for 3 years. Switch depreciation mode to apply one rate across all holding periods.</div></article>
+          <article class="panel"><div class="panel-head"><div><span class="panel-number">04 / DEAL STRUCTURE</span><h2>Closing the financial gap</h2><p>Real contribution profit, not gross referrals</p></div></div><div class="target-display"><div><span class="target-label">CONTRIBUTION PROFIT STILL NEEDED / YEAR</span><strong id="requiredProfit">—</strong></div><div><span class="target-label">REQUIRED REFERRED SALES AT SET MARGIN</span><strong id="requiredSales">—</strong></div></div><div class="progress-wrap"><div id="reciprocalProgress" class="progress-track"><div class="progress-bar"></div></div><div class="progress-labels"><span id="confirmedProfitLabel">Confirmed profit: —</span><span id="gapLabel">Gap: —</span></div></div><div class="alert-strip" id="dealInsight"></div></article>
+        </section>
+
+        <section class="dash-grid bottom-charts">
+          <article class="panel table-panel"><div class="panel-head"><div><span class="panel-number">05 / COST BUILD</span><h2>Auditable annual cost build</h2><p>Five categories, per-vehicle and full fleet</p></div><button id="copySummary" class="text-button" type="button">Copy summary ↗</button></div><div class="table-scroll"><table class="data-table"><thead><tr><th>Cost category</th><th>Per car / month</th><th>Per car / year</th><th>Full fleet / year</th></tr></thead><tbody id="costTableBody"></tbody><tfoot id="costTableFoot"></tfoot></table></div><div class="table-fineprint" id="taxesFineprint"></div></article>
+          <article class="panel"><div class="panel-head"><div><span class="panel-number">06 / RENTAL MECHANICS</span><h2>At-a-glance operating KPIs</h2><p>10-day cycle, utilization, contract turnover and capital recovery</p></div></div><div class="operating-stats" id="operatingStats"></div><div class="callout"><span class="callout-label">THE BUSINESS DECISION</span><p id="decisionSentence">—</p></div></article>
+        </section>
+        <footer class="footer"><div><strong>Model notes</strong> · No revenue attributed to free loaners. Resale proceeds recover part of acquisition cost; they are not incremental rental profit. Staff time is an opportunity cost, not an automatic payroll saving. Third-party/MPI payments are counted only if explicitly entered.</div><div>Illustrative decision support only · CAD · No external analytics · <span id="statusText" aria-live="polite">Ready</span></div></footer>
+      </main>
+    </div>
+  </div>
+  <script src="model.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
