@@ -6,7 +6,7 @@ A complete **HTML + CSS + JavaScript** interactive model. No Node.js, build tool
 
 1. Open `index.html` in Chrome, Edge, Firefox or Safari, **or** publish the files using GitHub Pages.
 2. Adjust the inputs in the left sidebar. The KPI cards, donut, annual cost comparison, 2/3/4-year hold comparison, cost table, and reciprocal-business target update immediately.
-3. For the previously discussed working case, use **Load scenario .json** with the **separately supplied** `Jim_Pattison_Private_Working_Scenario_DO_NOT_UPLOAD.json`. Do not upload that JSON to GitHub.
+3. For the previously discussed working case, use **Load scenario .json** with the **separately supplied** `Jim_Pattison_Private_Scenario_70MPI_30Internal_DO_NOT_UPLOAD.json`. Do not upload that JSON to GitHub.
 4. Click **Presentation view** or press `P` while not editing a field to hide inputs. Press `P` again to open them. Use **Print / PDF** for an offline snapshot.
 5. Click **Save scenario .json** to retain your inputs privately on your computer; **Export numbers** for a spreadsheet-ready CSV. The app does not automatically save data to cloud storage.
 
@@ -22,14 +22,14 @@ A complete **HTML + CSS + JavaScript** interactive model. No Node.js, build tool
 - **Owned annual cost** = sum of five annual per-car expenses × number of owned vehicles.
 - **Rental billable days/year** = cars replaced × rental utilization × days/month × 12.
 - **Average contracts/month** = billable days/month ÷ average contract length. Contract length affects turnover, **not rental-day cost** when utilization is held fixed.
-- **Shop's rental expense** = billable days/year × daily rate × (1 − verified third-party-paid share).
+- **Shop's replacement-rental expense** = converted loaner days/year × internal-rental percentage × shop-paid daily rate. The remaining MPI portion is assumed billed directly by the provider to MPI, subject to coverage approval. Shop receives no income on those replacement rental days.
 - **Post-conversion annual cost** = remaining fleet ownership + shop's rental expense + on-site fees + transition cost annualized.
 - **Financial gap** = post-conversion annual cost − original owned fleet annual cost. **Positive means outsourcing adds cost**, negative means savings.
 - **Verified reciprocal contribution** = repair referral sales × contribution margin + buyback contribution profit + other reciprocal profit + manually confirmed profit.
 - **Outstanding reciprocal contribution** = max(0, gap − verified reciprocal contribution profit).
 - **Value to bridge paper rate to target effective rate** = (paper rate − target effective rate) × shop-paid annual rental days, floored at zero. This does not necessarily close the total ownership cost gap.
 - **Required gross referred sales** = outstanding reciprocal contribution ÷ incremental contribution margin. Sales revenue is **not** contribution profit.
-- **Break-even rental daily rate** = (avoided ownership cost − incremental on-site/transition costs + verified reciprocal contribution) ÷ shop-paid billable days.
+- **Break-even internal daily rate** = (net avoided owned-fleet cost − incremental on-site/transition costs + verified reciprocal contribution) ÷ shop-paid internal days. The shop's MPI receipts on its *own* fleet, if any, are deducted from the ownership baseline; the default is $0/day.
 
 ## Working assumptions and limitations
 
@@ -65,3 +65,12 @@ See `DEPLOYMENT_GUIDE.md`. Place `index.html`, `styles.css`, `model.js`, `app.js
 | `.nojekyll` | Tell GitHub Pages not to apply Jekyll processing |
 
 All code is plain JavaScript. You can run tests with `node tests/model.test.js` if Node.js is installed. Node.js is **not** required to host or use the dashboard.
+
+## New mixed-payer model (November 2026)
+
+The live dashboard now has two additional scenario inputs under **Rental partner / deal**:
+
+- **Internal rentals paid by the shop (%)**: 30% default. The remaining 70% are assumed MPI-eligible provider-direct-billed days; this must be verified and is **not** a guarantee of claim approval or reimbursement.
+- **Shop MPI revenue on its *own* loaners ($/MPI day)**: $0 default. A positive amount reduces the original owned-fleet cost and any remaining owned cars' costs; it is **not** assumed to be revenue paid to the shop when Enterprise provides the rental.
+
+The public demo uses a $25/day illustrative *shop-paid* internal rental rate and a 40-car conversion pool. The 20 pre-existing U-Drive MPI rentals are outside the modeled conversion. At 80% utilization and a 30-day commercial month, 40 × 80% × 30 = 960 monthly rental days; 288 are shop-paid ($7,200 monthly) and 672 are assumed MPI-paid directly to the provider. With an illustrative ownership benchmark of $187,387/year loaded from the separately supplied private scenario, the projected shop-paid rental cost is $86,400/year and the modeled reduction in shop costs is $100,987/year, before changes in operating costs or denied MPI claims. **Do not upload private financial assumptions to this public repository.**
