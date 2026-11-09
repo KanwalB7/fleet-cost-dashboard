@@ -44,9 +44,10 @@
     utilizationPercent: 80,
     averageRentalDays: 10,
     daysPerMonth: 30,
-    dailyRentalRate: 35,
+    dailyRentalRate: 25,
     targetEffectiveRate: 25,
-    thirdPartyPaidPercent: 0,
+    internalRentalPercent: 30,
+    shopMPIRevenuePerDay: 0,
     onSiteMonthlyFee: 0,
     oneTimeTransitionCost: 0,
     transitionYears: 1,
@@ -77,7 +78,7 @@
     d.resalePenaltyPercent = bound(d.resalePenaltyPercent, 0, 100);
     d.vehiclesReplaced = bound(Math.round(number(d.vehiclesReplaced, 40)), 0, d.fleetSize);
     d.utilizationPercent = bound(d.utilizationPercent, 0, 100);
-    d.thirdPartyPaidPercent = bound(d.thirdPartyPaidPercent, 0, 100);
+    d.internalRentalPercent = bound(d.internalRentalPercent, 0, 100);
     d.reciprocalMarginPercent = bound(d.reciprocalMarginPercent, 0, 100);
     d.purchaseTaxPercent = bound(d.purchaseTaxPercent, 0, 100);
     d.daysPerMonth = bound(d.daysPerMonth, 1, 31);
@@ -90,7 +91,8 @@
       'liabilityMonthly','miscellaneousMonthly','fuelMonthly','additionalInsuranceMonthly','damageAnnualPerCar',
       'interestMonthly','damageReserveMonthly','annualSalary','personnelHoursWeekly',
       'additionalAnnualPersonnelCost','dailyRentalRate','targetEffectiveRate','onSiteMonthlyFee','oneTimeTransitionCost',
-      'confirmedAnnualReciprocalProfit','annualRepairReferralRevenue','annualBuybackContribution','annualOtherReciprocalContribution'
+      'confirmedAnnualReciprocalProfit','annualRepairReferralRevenue','annualBuybackContribution','annualOtherReciprocalContribution',
+      'shopMPIRevenuePerDay'
     ]) d[key] = nonneg(d[key]);
     d.depreciationMode = d.depreciationMode === 'monthly' ? 'monthly' : 'reported';
     d.taxesMode = d.taxesMode === 'itemized' ? 'itemized' : 'proxy';
@@ -145,13 +147,28 @@
     const monthlyRentalDays = carsReplaced * d.utilizationPercent / 100 * d.daysPerMonth;
     const annualRentalDays = monthlyRentalDays * 12;
     const monthlyContracts = monthlyRentalDays / d.averageRentalDays;
+    // The converted loaners are split between direct MPI-funded days and
+    // internal shop-paid days. The 20 existing U-Drive MPI units are out of scope.
+    // Any shop MPI revenue entered here applies to the *owned* loaner baseline
+    // and retained owned vehicles, not to replacement rentals direct-billed by ERAC.
+    const internalFraction = d.internalRentalPercent / 100;
+    const mpiFraction = 1 - internalFraction;
+    const internalRentalDaysAnnual = annualRentalDays * internalFraction;
+    const mpiRentalDaysAnnual = annualRentalDays * mpiFraction;
+    const bodyShopRentalAnnual = internalRentalDaysAnnual * d.dailyRentalRate;
+    // An all-days-equivalent is retained solely for backward compatibility.
+    // It is NOT the total ERAC invoice, since MPI rates are not modelled here.
     const grossEnterpriseAnnual = annualRentalDays * d.dailyRentalRate;
-    const payerFraction = 1 - d.thirdPartyPaidPercent / 100;
-    const bodyShopRentalAnnual = grossEnterpriseAnnual * payerFraction;
+    const ownedFleetMPIRevenueAnnual = d.fleetSize * d.utilizationPercent / 100
+      * d.daysPerMonth * 12 * mpiFraction * d.shopMPIRevenuePerDay;
+    const retainedOwnedMPIRevenueAnnual = carsKept * d.utilizationPercent / 100
+      * d.daysPerMonth * 12 * mpiFraction * d.shopMPIRevenuePerDay;
+    const ownershipNetAnnual = ownershipAnnual - ownedFleetMPIRevenueAnnual;
     const onSiteAndTransitionAnnual = d.onSiteMonthlyFee * 12 + d.oneTimeTransitionCost / d.transitionYears;
     const retainedOwnedAnnual = ownershipPerCarYear * carsKept;
-    const outsourcingAnnual = retainedOwnedAnnual + bodyShopRentalAnnual + onSiteAndTransitionAnnual;
-    const preReciprocalGap = outsourcingAnnual - ownershipAnnual;
+    const outsourcingAnnual = retainedOwnedAnnual - retainedOwnedMPIRevenueAnnual
+      + bodyShopRentalAnnual + onSiteAndTransitionAnnual;
+    const preReciprocalGap = outsourcingAnnual - ownershipNetAnnual;
     const marginFraction = d.reciprocalMarginPercent / 100;
     const calculatedRepairContribution = d.annualRepairReferralRevenue * marginFraction;
     const verifiedReciprocalProfit = d.confirmedAnnualReciprocalProfit + calculatedRepairContribution
@@ -161,12 +178,12 @@
     const requiredReciprocalRevenue = marginFraction > 0
       ? requiredReciprocalProfit / marginFraction
       : (requiredReciprocalProfit > 0 ? null : 0);
-    const denominator = annualRentalDays * payerFraction;
+    const denominator = internalRentalDaysAnnual;
     const breakEvenRate = denominator > 0
-      ? Math.max(0, (ownershipAnnual - retainedOwnedAnnual - onSiteAndTransitionAnnual
-          + verifiedReciprocalProfit) / denominator)
+      ? Math.max(0, (ownershipNetAnnual - retainedOwnedAnnual + retainedOwnedMPIRevenueAnnual
+          - onSiteAndTransitionAnnual + verifiedReciprocalProfit) / denominator)
       : null;
-    const savingsBeforeReciprocal = ownershipAnnual - outsourcingAnnual;
+    const savingsBeforeReciprocal = ownershipNetAnnual - outsourcingAnnual;
     const savingsAfterReciprocal = -netGap;
 
     return {
@@ -179,13 +196,18 @@
       personnelFleetAnnual, personnelPerCarYear,
       ownershipPerCarYear, ownershipPerCarMonth:ownershipPerCarYear / 12,
       ownershipAnnual, ownershipMonthly:ownershipAnnual / 12,
+      ownershipNetAnnual, ownedFleetMPIRevenueAnnual, retainedOwnedMPIRevenueAnnual,
+      internalRentalPercent:d.internalRentalPercent, mpiRentalPercent:100-d.internalRentalPercent,
+      internalRentalDaysAnnual, mpiRentalDaysAnnual,
+      internalRentalDaysMonthly:internalRentalDaysAnnual / 12,
+      mpiRentalDaysMonthly:mpiRentalDaysAnnual / 12,
       annualRentalDays, monthlyRentalDays, monthlyContracts, carsReplaced, carsKept,
       avgActiveRentals: carsReplaced * d.utilizationPercent / 100,
       grossEnterpriseAnnual, bodyShopRentalAnnual,
       onSiteAndTransitionAnnual, retainedOwnedAnnual, outsourcingAnnual,
       preReciprocalGap, netGap, requiredReciprocalProfit, requiredReciprocalRevenue,
       calculatedRepairContribution, verifiedReciprocalProfit,
-      targetEffectiveRateGap: Math.max(0, d.dailyRentalRate - d.targetEffectiveRate) * annualRentalDays * payerFraction,
+      targetEffectiveRateGap: Math.max(0, d.dailyRentalRate - d.targetEffectiveRate) * internalRentalDaysAnnual,
       breakEvenRate, savingsBeforeReciprocal, savingsAfterReciprocal,
       costPerTenDayContract: d.dailyRentalRate * d.averageRentalDays,
       annualEquivalentRentals: monthlyContracts * 12
