@@ -21,7 +21,7 @@ A complete **HTML + CSS + JavaScript** intrental partnertive model. No Node.js, 
 - **Owned annual cost** = sum of five annual per-car expenses × number of owned vehicles.
 - **Rental billable days/year** = cars replaced × rental utilization × days/month × 12.
 - **Average contracts/month** = billable days/month ÷ average contract length. Contract length affects turnover, **not rental-day cost** when utilization is held fixed.
-- **Shop's replacement-rental expense** = converted loaner days/year × internal-rental percentage × shop-paid daily rate. The remaining insurance portion is assumed billed directly by the provider to insurance, subject to coverage approval. Shop receives no income on those replacement rental days.
+- **Shop's replacement-rental expense** = converted loaner days/year × internal-rental percentage × shop-paid daily rate. The remaining insured portion is assumed reimbursed directly to the rental provider by the insurer, subject to coverage authorization. Shop receives no income on those replacement rental days.
 - **Post-conversion annual cost** = remaining fleet ownership + shop's rental expense + on-site fees + transition cost annualized.
 - **Accounting cost difference** = post-conversion annual cost − original net owned-fleet cost. **Positive means outsourcing adds cost**, negative means savings. The displayed **FINANCIAL GAP BEFORE REFERRALS** KPI presents its *opposite*, net savings, with **positive green** and **negative red**.
 - **Verified reciprocal contribution** = directly entered incremental repair-referral contribution profit + vehicle buyback contribution profit + other reciprocal contribution profit + manually confirmed profit. No gross-sales-to-profit margin assumption is used.
@@ -38,7 +38,7 @@ The original analysis deliberately **excluded financing interest and physical-da
 
 A loaner supplied to customers free of charge earns no direct rental revenue. Selling it later **recovers capital** and does not create gross rental profit. The model treats the purchase-to-resale difference as depreciation. Changes to resale impairment may be modeled with a residual penalty; do not count the same loss twice as repair cost.
 
-The 20-hour weekly personnel assumption is an opportunity cost: it becomes a cash saving only if employee hours or positions are eliminated, and it becomes an economic saving only to the extent the hours can be reassigned productively. Actual vehicle insurance and eligible dealership vehicle tax treatment require verification.
+The 20-hour weekly personnel assumption is an opportunity cost: it becomes a cash saving only if employee hours or positions are eliminated, and it becomes an economic saving only to the extent the hours can be reassigned productively. Actual vehicle insurance and eligible dealership vehicle tax treatment require verification for the applicable jurisdiction.
 
 The default comparison uses a **30-day month / 360-day commercial year** so it reproduces the presentation figures. Change `days per month` to 30.4167 if you want a 365-day annualized billing approximation.
 
@@ -70,6 +70,6 @@ All code is plain JavaScript. You can run tests with `node tests/model.test.js` 
 The live dashboard uses a **$35/day proposed shop-paid internal rental rate** in its base case. It is not an approved agreement. The dashboard has two mixed-payer scenario inputs under **Rental partner / deal**:
 
 - **Internal rentals paid by the shop (%)**: 30% default. The remaining 70% are assumed insurance-eligible provider-direct-billed days; this must be verified and is **not** a guarantee of claim approval or reimbursement.
-- **Shop insurance revenue on its *own* loaners ($/insurance day)**: $0 default. A positive amount reduces the original owned-fleet cost and any remaining owned cars' costs; it is **not** assumed to be revenue paid to the shop when Enterprise provides the rental.
+- **Insurer reimbursement earned by the shop on its *own* loaners ($/eligible rental day)**: $0 default. A positive amount reduces the original owned-fleet cost and any remaining owned cars' costs; it is **not** assumed to be revenue paid to the shop when the replacement rental provider supplies the vehicle.
 
 The public demo uses a $35/day proposed *shop-paid* internal rental rate and a 40-car conversion pool. Existing insurance-funded rentals serviced by the current rental provider are outside the modeled conversion. At 80% utilization and a 30-day commercial month, 40 × 80% × 30 = 960 monthly rental days; 288 are shop-paid ($10,080 monthly) and 672 are assumed insurance-reimbursed directly to the provider. With an illustrative ownership benchmark of $187,387/year loaded from the separately supplied private scenario, the projected shop-paid rental cost is $120,960/year and the modeled reduction in shop costs is $66,427/year, before changes in operating costs or denied insurance claims. **Do not upload private financial assumptions to this public repository.**
