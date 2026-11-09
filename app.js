@@ -57,7 +57,7 @@
       {key:'daysPerMonth',label:'Commercial days per month',min:1,max:31,step:1,unit:'days'},
       {key:'dailyRentalRate',label:'Shop-paid internal daily rental rate',min:0,max:150,step:1,unit:'CAD / day',slider:true},
       {key:'targetEffectiveRate',label:'Target effective rental rate',min:0,max:150,step:1,unit:'CAD / day',help:'Shows the reciprocal contribution needed to bridge paper rate to target, not a discount already approved.'},
-      {key:'internalRentalPercent',label:'Shop-paid internal rental share',min:0,max:100,step:1,unit:'% of replacement rental days',slider:true,help:'Base case: 30% shop-paid at the internal daily rate. Remaining 70% is assumed eligible for direct insurance reimbursement by the rental provider. The existing rentals handled by the current rental provider are excluded.'},
+      {key:'internalRentalPercent',label:'Shop-paid internal rental share',min:0,max:100,step:1,unit:'% of replacement rental days',slider:true,help:'Base case: 30% shop-paid at the internal daily rate. Remaining 70% is assumed insurer-reimbursed directly to the replacement rental provider, subject to authorization. Existing rentals handled by the current provider are excluded.'},
       {key:'shopInsuranceReimbursementPerDay',label:'Insurer reimbursement earned on OWN loaners',min:0,max:150,step:1,unit:'CAD / insurer-covered day',help:'Base case $0: the shop does not claim insurance reimbursement for its free owned loaners. Any amount entered reduces the original owned-fleet cost and applies to the owned vehicles it retains; it is NOT insurer reimbursement received by the shop after the rental provider takes over.'},
       {key:'onSiteMonthlyFee',label:'On-site counter cost to body shop',min:0,max:30000,step:50,unit:'CAD / month'},
       {key:'oneTimeTransitionCost',label:'One-time changeover cost',min:0,max:100000,step:500,unit:'CAD'},
@@ -188,7 +188,7 @@
   function renderDashboard(){
     const r=calculate(scenario), d=r.input;
     $('clientHeading').textContent=d.clientName || 'Fleet ownership';
-    $('dashboardSubtitle').textContent=`${d.providerName || 'Rental partner'} · ${num(d.fleetSize)} free shop loaners: ${pct(d.internalRentalPercent)} shop-paid at ${money2(d.dailyRentalRate)}/day, ${pct(100-d.internalRentalPercent)} routed to insurance. Existing current-provider rentals excluded. CAD.`;
+    $('dashboardSubtitle').textContent=`${d.providerName || 'Rental partner'} · ${num(d.fleetSize)} free shop loaners: ${pct(d.internalRentalPercent)} shop-paid at ${money2(d.dailyRentalRate)}/day, ${pct(100-d.internalRentalPercent)} assumed insurer-reimbursed. Existing current-provider rentals excluded. CAD.`;
     $('holdBadge').textContent=`${r.years} YEAR${r.years===1?'':'S'}`;
     $('modeBadge').textContent=importedWorkingScenario?'Loaded local working case':'Illustrative public demo';
     $('kpiOwned').textContent=money(r.ownershipNetAnnual);
@@ -237,7 +237,7 @@
       ['Replaced loaners',r.carsReplaced,'cars'],
       ['Average active rentals',r.avgActiveRentals,'cars'],['Rental days per month',r.monthlyRentalDays,'days'],
       ['Rental contracts per month',r.monthlyContracts,'contracts'],
-      ['All replacement days at shop internal rate (hypothetical)',r.grossEnterpriseAnnual,'CAD/year'],
+      ['All replacement days at shop internal rate (hypothetical)',r.allDaysRateEquivalentAnnual,'CAD/year'],
       ['Shop invoice on internal rental days',r.bodyShopRentalAnnual,'CAD/year'],
       ['Annual contribution to bridge paper rate vs target',r.targetEffectiveRateGap,'CAD/year'],
       ['Rental arrangement annual shop cost',r.outsourcingAnnual,'CAD/year'],
