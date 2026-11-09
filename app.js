@@ -161,8 +161,8 @@
     $('costTableFoot').innerHTML=`<tr><td>GROSS OWNERSHIP COST</td><td>${money2(result.ownershipPerCarMonth)}</td><td>${money2(result.ownershipPerCarYear)}</td><td>${money(result.ownershipAnnual)}</td></tr><tr><td>Less: insurer payments on owned loaners</td><td>−${money2(result.ownedFleetInsuranceReceiptsAnnual / result.input.fleetSize / 12)}</td><td>−${money2(result.ownedFleetInsuranceReceiptsAnnual / result.input.fleetSize)}</td><td>−${money(result.ownedFleetInsuranceReceiptsAnnual)}</td></tr><tr><td>NET OWNERSHIP COST</td><td>${money2(result.ownershipNetAnnual/result.input.fleetSize/12)}</td><td>${money2(result.ownershipNetAnnual/result.input.fleetSize)}</td><td>${money(result.ownershipNetAnnual)}</td></tr>`;
     const d=result.input;
     $('taxesFineprint').textContent=d.taxesMode==='proxy'
-      ? `Taxes & licensing are modeled at ${money2(d.licenseProxyMonthly)}/car/month. This proxy is not a verified, all-inclusive Manitoba insurance and registration quote.`
-      : `Itemized Manitoba registration/tax assumptions are conditional on eligibility. Check actual insurance, purchase tax treatment and dealership status before presenting as factual costs.`;
+      ? `Taxes & licensing are modeled at ${money2(d.licenseProxyMonthly)}/car/month. This proxy is not a verified, all-inclusive local insurance, licensing and registration quote.`
+      : `Itemized registration and tax assumptions depend on local eligibility. Check actual insurance, purchase tax treatment and dealership status before presenting as factual costs.`;
   }
   function renderOperating(result) {
     const d=result.input;
@@ -188,7 +188,7 @@
   function renderDashboard(){
     const r=calculate(scenario), d=r.input;
     $('clientHeading').textContent=d.clientName || 'Fleet ownership';
-    $('dashboardSubtitle').textContent=`${d.providerName || 'Rental partner'} · ${num(d.fleetSize)} free shop loaners: ${pct(d.internalRentalPercent)} shop-paid at ${money2(d.dailyRentalRate)}/day, ${pct(100-d.internalRentalPercent)} assumed insurer-reimbursed. Existing current-provider rentals excluded. CAD.`;
+    $('dashboardSubtitle').textContent=`${d.providerName || 'Rental partner'} · ${num(d.fleetSize)} free shop loaners: ${pct(d.internalRentalPercent)} shop-paid at ${money2(d.dailyRentalRate)}/day, ${pct(100-d.internalRentalPercent)} assumed insurer-reimbursed. Existing rentals with the current provider excluded. CAD.`;
     $('holdBadge').textContent=`${r.years} YEAR${r.years===1?'':'S'}`;
     $('modeBadge').textContent=importedWorkingScenario?'Loaded local working case':'Illustrative public demo';
     $('kpiOwned').textContent=money(r.ownershipNetAnnual);
@@ -271,7 +271,7 @@
     const txt=[`${d.clientName} — ${r.years}-year fleet versus rental model`,
       `Fleet: ${d.fleetSize} × ${money(d.acquisitionPrice)}; resale ${money(r.resalePerCar)}/car`,
       `Owned fleet: gross ${money(r.ownershipAnnual)}/year; shop insurance receipts ${money(r.ownedFleetInsuranceReceiptsAnnual)}/year; net ${money(r.ownershipNetAnnual)}/year`,
-      `Rental program shop cost: ${money(r.outsourcingAnnual)}/year; ${pct(d.internalRentalPercent)} internal at ${money2(d.dailyRentalRate)}/day; insurance-funded share ${pct(100-d.internalRentalPercent)}; utilization ${pct(d.utilizationPercent)}`,
+      `Rental program shop cost: ${money(r.outsourcingAnnual)}/year; ${pct(d.internalRentalPercent)} internal at ${money2(d.dailyRentalRate)}/day; insurer-reimbursed share ${pct(100-d.internalRentalPercent)}; utilization ${pct(d.utilizationPercent)}`,
       `Net financial benefit before referrals (positive = savings): ${signedMoney(r.savingsBeforeReciprocal)}/year`,
       `Already entered reciprocal contribution: ${money(r.verifiedReciprocalProfit)}/year`,
       `Still-required reciprocal contribution: ${money(r.requiredReciprocalProfit)}/year`,
