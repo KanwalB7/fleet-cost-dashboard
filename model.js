@@ -143,7 +143,12 @@
     const monthlyRentalDays = carsReplaced * d.utilizationPercent / 100 * d.daysPerMonth;
     const annualRentalDays = monthlyRentalDays * 12;
     const monthlyContracts = monthlyRentalDays / d.averageRentalDays;
-    // Converted loaner days are split between insurer-reimbursed rentals\n    // and internal shop-paid rentals. Existing rentals from the current\n    // rental provider are outside this loaner replacement comparison.\n    // Insurer reimbursement entered for shop-owned vehicles applies only\n    // to the owned-fleet baseline and any retained owned vehicles.\n    const internalFraction = d.internalRentalPercent / 100;
+    // Converted loaner days are split between insurer-reimbursed rentals
+    // and internal shop-paid rentals. Existing rentals from the current
+    // rental provider are outside this loaner replacement comparison.
+    // Insurer reimbursement entered for shop-owned vehicles applies only
+    // to the owned-fleet baseline and any retained owned vehicles.
+    const internalFraction = d.internalRentalPercent / 100;
     const insuranceFraction = 1 - internalFraction;
     const internalRentalDaysAnnual = annualRentalDays * internalFraction;
     const insuranceRentalDaysAnnual = annualRentalDays * insuranceFraction;
