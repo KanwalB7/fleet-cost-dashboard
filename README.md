@@ -6,15 +6,14 @@ A complete **HTML + CSS + JavaScript** interactive model. No Node.js, build tool
 
 1. Open `index.html` in Chrome, Edge, Firefox or Safari, **or** publish the files using GitHub Pages.
 2. Adjust the inputs in the left sidebar. The KPI cards, donut, annual cost comparison, 2/3/4-year hold comparison, cost table, and reciprocal-business target update immediately.
-3. For the previously discussed working case, use **Load scenario .json** with the **separately supplied** `Jim_Pattison_Private_Scenario_70MPI_30Internal_DO_NOT_UPLOAD.json`. Do not upload that JSON to GitHub.
+3. For the previously discussed working case, use **Load scenario .json** with the **separately supplied** `Jim_Pattison_Private_Scenario_35_MPI70_Internal30_DO_NOT_UPLOAD.json`. Do not upload that JSON to GitHub.
 4. Click **Presentation view** or press `P` while not editing a field to hide inputs. Press `P` again to open them. Use **Print / PDF** for an offline snapshot.
 5. Click **Save scenario .json** to retain your inputs privately on your computer; **Export numbers** for a spreadsheet-ready CSV. The app does not automatically save data to cloud storage.
 
 ## Main financial formulas
 
 - **Depreciation (per car, per year)** = `(Acquisition price − expected resale price) ÷ holding years`.
-- **3-year resale, low-depreciation default** = `Acquisition price × (1 − monthly depreciation %)^(12 × holding years)`.
-- **2- and 4-year comparison** = 2-year and 4-year retention inputs when `2y / 3y / 4y scenario assumptions` is selected. Switch to `Compounded monthly rate for all years` for apples-to-apples depreciation curves.
+- **Resale at every hold length (2, 3, 4 years or custom)** = `Acquisition price × (1 − monthly depreciation %)^(12 × holding years)`. The old editable 2-year and 4-year separate retention assumptions have been removed.
 - **Taxes & licence** = 12 × monthly proxy; OR annual registration + one-time plates / years + 12 × qualifying dealer-use tax + acquisition tax / years + other annual tax. **Do not use both methods at once.**
 - **Maintenance** = 12 × `[ (external + internal) / 2 ]` by default. The user can select `Sum` or `Custom`.
 - **Miscellaneous & liability** = 12 × (liability + general misc + fuel + optional additional insurance + enabled interest/reserve), plus annual uninsured damage cost.
@@ -24,16 +23,16 @@ A complete **HTML + CSS + JavaScript** interactive model. No Node.js, build tool
 - **Average contracts/month** = billable days/month ÷ average contract length. Contract length affects turnover, **not rental-day cost** when utilization is held fixed.
 - **Shop's replacement-rental expense** = converted loaner days/year × internal-rental percentage × shop-paid daily rate. The remaining MPI portion is assumed billed directly by the provider to MPI, subject to coverage approval. Shop receives no income on those replacement rental days.
 - **Post-conversion annual cost** = remaining fleet ownership + shop's rental expense + on-site fees + transition cost annualized.
-- **Financial gap** = post-conversion annual cost − original owned fleet annual cost. **Positive means outsourcing adds cost**, negative means savings.
-- **Verified reciprocal contribution** = repair referral sales × contribution margin + buyback contribution profit + other reciprocal profit + manually confirmed profit.
+- **Accounting cost difference** = post-conversion annual cost − original net owned-fleet cost. **Positive means outsourcing adds cost**, negative means savings. The displayed **FINANCIAL GAP BEFORE REFERRALS** KPI presents its *opposite*, net savings, with **positive green** and **negative red**.
+- **Verified reciprocal contribution** = directly entered incremental repair-referral contribution profit + vehicle buyback contribution profit + other reciprocal contribution profit + manually confirmed profit. No gross-sales-to-profit margin assumption is used.
 - **Outstanding reciprocal contribution** = max(0, gap − verified reciprocal contribution profit).
 - **Value to bridge paper rate to target effective rate** = (paper rate − target effective rate) × shop-paid annual rental days, floored at zero. This does not necessarily close the total ownership cost gap.
-- **Required gross referred sales** = outstanding reciprocal contribution ÷ incremental contribution margin. Sales revenue is **not** contribution profit.
+- **Net financial benefit before referrals** = original net ownership cost − post-conversion annual cost. **Positive is savings (green); negative is additional cost (red).** Referral contribution amounts must already be profit, not sales revenue.
 - **Break-even internal daily rate** = (net avoided owned-fleet cost − incremental on-site/transition costs + verified reciprocal contribution) ÷ shop-paid internal days. The shop's MPI receipts on its *own* fleet, if any, are deducted from the ownership baseline; the default is $0/day.
 
 ## Working assumptions and limitations
 
-The public website starts with **illustrative rounded inputs**, not the proprietary figures from any company's income statement. The separate private scenario JSON holds the exact working figures previously discussed, for local loading only. They are illustrative benchmarking inputs, not audited costs of any particular dealership.
+The public website starts with **illustrative rounded inputs, including a proposed $35/day internal rate**, not the proprietary figures from any company's income statement. The separate private scenario JSON holds the exact working figures previously discussed, for local loading only. They are illustrative benchmarking inputs, not audited costs of any particular dealership.
 
 The original analysis deliberately **excluded financing interest and physical-damage reserves**, averaged rather than summed the external/internal maintenance categories, used $3/month as an **assumed fuel target** (not a verified provincial average), and applied a monthly license/tax proxy rather than all-in Manitoba coverage. Those choices are preserved in the private working case and can all be changed.
 
@@ -43,7 +42,7 @@ The 20-hour weekly personnel assumption is an opportunity cost: it becomes a cas
 
 The default comparison uses a **30-day month / 360-day commercial year** so it reproduces the presentation figures. Change `days per month` to 30.4167 if you want a 365-day annualized billing approximation.
 
-The default 2-year retention (70%) and 4-year retention (57%) are illustrative reference scenarios; the 3-year figure is calculated from a **1% monthly compounded depreciation assumption**. These are not an internally consistent single market curve. A 1% monthly decline is a favourable *assumption*, not a guaranteed market minimum.
+All holding-period resale values use the **same configurable compounded monthly depreciation rate** (public default 1% per month), so 2-, 3-, and 4-year scenarios remain internally consistent. The 1% monthly rate is a favourable *assumption*, not a guaranteed market minimum.
 
 ## Publish on GitHub Pages
 
@@ -68,9 +67,9 @@ All code is plain JavaScript. You can run tests with `node tests/model.test.js` 
 
 ## New mixed-payer model (November 2026)
 
-The live dashboard now has two additional scenario inputs under **Rental partner / deal**:
+The live dashboard uses a **$35/day proposed shop-paid internal rental rate** in its base case. It is not an approved agreement. The dashboard has two mixed-payer scenario inputs under **Rental partner / deal**:
 
 - **Internal rentals paid by the shop (%)**: 30% default. The remaining 70% are assumed MPI-eligible provider-direct-billed days; this must be verified and is **not** a guarantee of claim approval or reimbursement.
 - **Shop MPI revenue on its *own* loaners ($/MPI day)**: $0 default. A positive amount reduces the original owned-fleet cost and any remaining owned cars' costs; it is **not** assumed to be revenue paid to the shop when Enterprise provides the rental.
 
-The public demo uses a $25/day illustrative *shop-paid* internal rental rate and a 40-car conversion pool. The 20 pre-existing U-Drive MPI rentals are outside the modeled conversion. At 80% utilization and a 30-day commercial month, 40 × 80% × 30 = 960 monthly rental days; 288 are shop-paid ($7,200 monthly) and 672 are assumed MPI-paid directly to the provider. With an illustrative ownership benchmark of $187,387/year loaded from the separately supplied private scenario, the projected shop-paid rental cost is $86,400/year and the modeled reduction in shop costs is $100,987/year, before changes in operating costs or denied MPI claims. **Do not upload private financial assumptions to this public repository.**
+The public demo uses a $25/day illustrative *shop-paid* internal rental rate and a 40-car conversion pool. The 20 pre-existing U-Drive MPI rentals are outside the modeled conversion. At 80% utilization and a 30-day commercial month, 40 × 80% × 30 = 960 monthly rental days; 288 are shop-paid ($7,200 monthly) and 672 are assumed MPI-paid directly to the provider. With an illustrative ownership benchmark of $187,387/year loaded from the separately supplied private scenario, the projected shop-paid rental cost is $120,960/year and the modeled reduction in shop costs is $66,427/year, before changes in operating costs or denied MPI claims. **Do not upload private financial assumptions to this public repository.**
