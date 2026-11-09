@@ -3,10 +3,10 @@ const assert=require('node:assert/strict');
 const {calculate,PUBLIC_DEFAULTS,normalized}=require('../model.js');
 const approx=(a,b,tol=.01)=>assert.ok(Math.abs(a-b)<=tol,`Expected ${b} +/- ${tol}; got ${a}`);
 const test=(name,fn)=>{fn();console.log('PASS',name);};
-test('proposed $35 rate with 70% MPI and 30% shop-paid days',()=>{
+test('proposed $35 rate with 70% insurer-reimbursed and 30% shop-paid days',()=>{
  const r=calculate(PUBLIC_DEFAULTS);
  approx(PUBLIC_DEFAULTS.dailyRentalRate,35);approx(r.annualRentalDays,11520);
- approx(r.internalRentalDaysAnnual,3456);approx(r.mpiRentalDaysAnnual,8064);
+ approx(r.internalRentalDaysAnnual,3456);approx(r.insuranceRentalDaysAnnual,8064);
  approx(r.bodyShopRentalAnnual,120960);approx(r.monthlyContracts,96);
 });
 test('resale uses compounded monthly rate for every holding period',()=>{
@@ -24,15 +24,15 @@ test('maintenance averages external and internal',()=>{
 test('personnel allocation based on 20 hours of a 40-hour week',()=>{
  const r=calculate(PUBLIC_DEFAULTS);approx(r.personnelFleetAnnual,22500);approx(r.personnelPerCarYear,562.5);
 });
-test('MPI revenue on shop-owned loaners reduces ownership net',()=>{
- const r=calculate({...PUBLIC_DEFAULTS,shopMPIRevenuePerDay:10});
- approx(r.ownedFleetMPIRevenueAnnual,r.mpiRentalDaysAnnual*10);
- approx(r.ownershipNetAnnual,r.ownershipAnnual-r.ownedFleetMPIRevenueAnnual);
+test('insurance revenue on shop-owned loaners reduces ownership net',()=>{
+ const r=calculate({...PUBLIC_DEFAULTS,shopinsuranceRevenuePerDay:10});
+ approx(r.ownedFleetinsuranceRevenueAnnual,r.insuranceRentalDaysAnnual*10);
+ approx(r.ownershipNetAnnual,r.ownershipAnnual-r.ownedFleetinsuranceRevenueAnnual);
 });
 test('internal rental mix changes shop cost proportionally',()=>{
  const r=calculate({...PUBLIC_DEFAULTS,internalRentalPercent:50});
  approx(r.bodyShopRentalAnnual,11520*.5*35);
- approx(r.mpiRentalDaysAnnual,11520*.5);
+ approx(r.insuranceRentalDaysAnnual,11520*.5);
 });
 test('referral input is direct incremental profit, without sales margin',()=>{
  const a=calculate({...PUBLIC_DEFAULTS,annualRepairReferralProfit:0});
