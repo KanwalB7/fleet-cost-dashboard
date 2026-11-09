@@ -58,9 +58,10 @@
       {key:'utilizationPercent',label:'Utilization of replacement rentals',min:0,max:100,step:1,unit:'%',slider:true},
       {key:'averageRentalDays',label:'Average rental contract duration',min:.25,max:90,step:.25,unit:'days'},
       {key:'daysPerMonth',label:'Commercial days per month',min:1,max:31,step:1,unit:'days'},
-      {key:'dailyRentalRate',label:'Rental rate per billed day',min:0,max:150,step:1,unit:'CAD / day',slider:true},
+      {key:'dailyRentalRate',label:'Shop-paid internal daily rental rate',min:0,max:150,step:1,unit:'CAD / day',slider:true},
       {key:'targetEffectiveRate',label:'Target effective rental rate',min:0,max:150,step:1,unit:'CAD / day',help:'Shows the reciprocal contribution needed to bridge paper rate to target, not a discount already approved.'},
-      {key:'thirdPartyPaidPercent',label:'Share paid by MPI / other third party',min:0,max:100,step:1,unit:'%',help:'Default 0% for free internal loaner replacements; only change for verified billable claims.'},
+      {key:'internalRentalPercent',label:'Internal rentals paid by the shop',min:0,max:100,step:1,unit:'% of replacement rental days',slider:true,help:'Base case: 30% shop-paid at the internal daily rate. Remaining 70% is assumed eligible for MPI direct billing by the rental provider. The ~20 existing U-Drive MPI rentals are excluded.'},
+      {key:'shopMPIRevenuePerDay',label:'Shop MPI revenue on its OWN loaners',min:0,max:150,step:1,unit:'CAD / MPI day',help:'Base case $0: the shop does not claim MPI reimbursement for its free owned loaners. Any amount entered reduces the original owned-fleet cost and applies to the owned vehicles it retains; it is NOT MPI revenue received by the shop after ERAC takes over.'},
       {key:'onSiteMonthlyFee',label:'On-site counter cost to body shop',min:0,max:30000,step:50,unit:'CAD / month'},
       {key:'oneTimeTransitionCost',label:'One-time changeover cost',min:0,max:100000,step:500,unit:'CAD'},
       {key:'transitionYears',label:'Spread transition expense across',min:.1,max:10,step:.1,unit:'years'},
@@ -142,8 +143,8 @@
     $('ownershipLegend').innerHTML=result.categories.map(c=>`<div class="legend-row"><span class="legend-label"><i class="swatch" style="background:${c.color}"></i>${safe(c.label)}</span><span class="legend-amount">${money(c.annualPerCar*result.input.fleetSize)}</span></div>`).join('');
   }
   function renderCompare(result) {
-    const max=Math.max(1,result.ownershipAnnual,result.outsourcingAnnual);
-    const rows=[{label:'Own all loaners',value:result.ownershipAnnual,kind:'owned'}, {label:`Rental plan + ${result.carsKept} retained`,value:result.outsourcingAnnual,kind:'rental'}];
+    const max=Math.max(1,result.ownershipNetAnnual,result.outsourcingAnnual);
+    const rows=[{label:'Own all loaners (net of shop MPI receipts)',value:result.ownershipNetAnnual,kind:'owned'}, {label:`Rental plan + ${result.carsKept} retained`,value:result.outsourcingAnnual,kind:'rental'}];
     $('compareBars').innerHTML=rows.map(row=>`<div class="comp-row"><div class="comp-row-header"><span>${safe(row.label)}</span><strong>${money(row.value)}</strong></div><div class="comp-track"><div class="comp-fill ${row.kind}" style="width:${100*row.value/max}%"></div></div></div>`).join('');
     let narrative;
     if(result.savingsBeforeReciprocal >= 0){narrative=`<strong>${money(result.savingsBeforeReciprocal)} lower annual modeled cost</strong> for the rental arrangement before reciprocal business.`;}
@@ -152,8 +153,8 @@
   }
   function renderHolding(result) {
     const years=[2,3,4], arr=years.map(y=>calculate(scenario,y));
-    const max=Math.max(1,...arr.map(x=>x.ownershipAnnual));
-    $('holdingChart').innerHTML=arr.map(x=>`<div class="hold-row ${x.years===result.years?'active':''}"><span class="hold-label">${x.years} YEARS</span><div class="hold-track"><div class="hold-fill" style="width:${x.ownershipAnnual/max*100}%"></div></div><strong class="hold-value">${money(x.ownershipAnnual)}</strong></div>`).join('');
+    const max=Math.max(1,...arr.map(x=>x.ownershipNetAnnual));
+    $('holdingChart').innerHTML=arr.map(x=>`<div class="hold-row ${x.years===result.years?'active':''}"><span class="hold-label">${x.years} YEARS</span><div class="hold-track"><div class="hold-fill" style="width:${x.ownershipNetAnnual/max*100}%"></div></div><strong class="hold-value">${money(x.ownershipNetAnnual)}</strong></div>`).join('');
     const note=result.input.depreciationMode==='monthly'
       ? `All three holding periods use ${pct(result.input.monthlyDepreciationPercent)} compounded monthly depreciation. Other assumptions remain constant.`
       : `2-year ${pct(result.input.retention2Percent)} retention; 3-year ${pct(result.retentionPercent)} retention at the monthly rate; 4-year ${pct(result.input.retention4Percent)} retention. These are distinct scenarios, not a single observed depreciation curve.`;
@@ -162,7 +163,7 @@
   function renderTable(result) {
     const n=result.input.fleetSize;
     $('costTableBody').innerHTML=result.categories.map(c=>`<tr><td><span class="line-name"><span class="swatch" style="background:${c.color}"></span>${safe(c.label)}</span></td><td>${money2(c.annualPerCar/12)}</td><td>${money2(c.annualPerCar)}</td><td>${money(c.annualPerCar*n)}</td></tr>`).join('');
-    $('costTableFoot').innerHTML=`<tr><td>TOTAL OWNERSHIP</td><td>${money2(result.ownershipPerCarMonth)}</td><td>${money2(result.ownershipPerCarYear)}</td><td>${money(result.ownershipAnnual)}</td></tr>`;
+    $('costTableFoot').innerHTML=`<tr><td>GROSS OWNERSHIP COST</td><td>${money2(result.ownershipPerCarMonth)}</td><td>${money2(result.ownershipPerCarYear)}</td><td>${money(result.ownershipAnnual)}</td></tr><tr><td>Less: MPI payments to shop on owned loaners</td><td>−${money2(result.ownedFleetMPIRevenueAnnual / result.input.fleetSize / 12)}</td><td>−${money2(result.ownedFleetMPIRevenueAnnual / result.input.fleetSize)}</td><td>−${money(result.ownedFleetMPIRevenueAnnual)}</td></tr><tr><td>NET OWNERSHIP COST</td><td>${money2(result.ownershipNetAnnual/result.input.fleetSize/12)}</td><td>${money2(result.ownershipNetAnnual/result.input.fleetSize)}</td><td>${money(result.ownershipNetAnnual)}</td></tr>`;
     const d=result.input;
     $('taxesFineprint').textContent=d.taxesMode==='proxy'
       ? `Taxes & licensing are modeled at ${money2(d.licenseProxyMonthly)}/car/month. This proxy is not a verified, all-inclusive Manitoba insurance and registration quote.`
@@ -174,6 +175,9 @@
       ['REPLACED LOANERS',num(result.carsReplaced)],
       ['AVG. RENTALS ACTIVE',num(result.avgActiveRentals)],
       ['RENTAL DAYS / MONTH',num(result.monthlyRentalDays)],
+      ['SHOP-PAID RENTAL DAYS / MONTH',num(result.internalRentalDaysMonthly)],
+      ['MPI-BILLED RENTAL DAYS / MONTH',num(result.mpiRentalDaysMonthly)],
+      ['SHOP MPI RECEIPTS ON OWNED LOANERS',money(result.ownedFleetMPIRevenueAnnual)],
       ['CONTRACTS / MONTH',num(result.monthlyContracts)],
       ['INITIAL VEHICLE CAPITAL',money(result.acquisitionTotal)],
       ['RESALE PROCEEDS / FLEET',money(result.resaleTotal)],
@@ -181,7 +185,7 @@
       ['EST. EMPLOYEE TIME / YEAR',money(result.personnelFleetAnnual)]
     ];
     $('operatingStats').innerHTML=stats.map(([label,val])=>`<div class="operating-stat"><span>${safe(label)}</span><strong>${safe(val)}</strong></div>`).join('');
-    let t=`For ${num(d.fleetSize)} free loaners held ${result.years} years, ownership costs ${money(result.ownershipAnnual)}/year. `;
+    let t=`For ${num(d.fleetSize)} free loaners held ${result.years} years, net ownership costs ${money(result.ownershipNetAnnual)}/year. `;
     if(result.savingsAfterReciprocal < 0) t+=`The proposed rental arrangement needs ${money(-result.savingsAfterReciprocal)} more annual contribution or pricing relief to match ownership after the entered confirmed reciprocal profit.`;
     else t+=`The proposed rental arrangement is ${money(result.savingsAfterReciprocal)} below the modeled ownership cost after entered reciprocal profit.`;
     $('decisionSentence').textContent=t;
@@ -189,15 +193,15 @@
   function renderDashboard(){
     const r=calculate(scenario), d=r.input;
     $('clientHeading').textContent=d.clientName || 'Fleet ownership';
-    $('dashboardSubtitle').textContent=`${d.providerName || 'Rental partner'} · Comparing ${num(d.fleetSize)} free customer loaners with a pay-per-day rental arrangement. All values in CAD.`;
+    $('dashboardSubtitle').textContent=`${d.providerName || 'Rental partner'} · ${num(d.fleetSize)} free shop loaners: ${pct(d.internalRentalPercent)} shop-paid at ${money2(d.dailyRentalRate)}/day, ${pct(100-d.internalRentalPercent)} routed to MPI. Existing U-Drive MPI rentals excluded. CAD.`;
     $('holdBadge').textContent=`${r.years} YEAR${r.years===1?'':'S'}`;
     $('modeBadge').textContent=importedWorkingScenario?'Loaded local working case':'Illustrative public demo';
-    $('kpiOwned').textContent=money(r.ownershipAnnual);
-    $('kpiPerCar').textContent=money(r.ownershipPerCarYear);
+    $('kpiOwned').textContent=money(r.ownershipNetAnnual);
+    $('kpiPerCar').textContent=money(r.ownershipNetAnnual / d.fleetSize);
     $('kpiResale').textContent=money(r.resalePerCar);
     $('kpiRetention').textContent=pct(100*r.resalePerCar/Math.max(1,d.acquisitionPrice));
     $('kpiRental').textContent=money(r.outsourcingAnnual);
-    $('kpiRentalFoot').textContent=`${num(r.annualRentalDays)} annual rental days · shop cost`;
+    $('kpiRentalFoot').textContent=`${num(r.internalRentalDaysAnnual)} shop-paid days · ${num(r.mpiRentalDaysAnnual)} MPI days`;
     $('kpiGap').textContent=money(Math.abs(r.preReciprocalGap));
     $('kpiGapFoot').textContent=r.preReciprocalGap>0?'Additional cost vs. ownership':r.preReciprocalGap<0?'Savings vs. ownership':'Break-even before referrals';
     document.querySelector('.kpi-gap').dataset.positive=String(r.preReciprocalGap>0);
@@ -237,7 +241,8 @@
       ['Replaced loaners',r.carsReplaced,'cars'],
       ['Average active rentals',r.avgActiveRentals,'cars'],['Rental days per month',r.monthlyRentalDays,'days'],
       ['Rental contracts per month',r.monthlyContracts,'contracts'],
-      ['Gross rental invoice',r.grossEnterpriseAnnual,'CAD/year'],
+      ['All replacement days at shop internal rate (hypothetical)',r.grossEnterpriseAnnual,'CAD/year'],
+      ['Shop invoice on internal rental days',r.bodyShopRentalAnnual,'CAD/year'],
       ['Annual contribution to bridge paper rate vs target',r.targetEffectiveRateGap,'CAD/year'],
       ['Rental arrangement annual shop cost',r.outsourcingAnnual,'CAD/year'],
       ['Pre-referral annual gap',r.preReciprocalGap,'CAD/year'],
@@ -270,13 +275,13 @@
     const r=calculate(scenario),d=r.input;
     const txt=[`${d.clientName} — ${r.years}-year fleet versus rental model`,
       `Fleet: ${d.fleetSize} × ${money(d.acquisitionPrice)}; resale ${money(r.resalePerCar)}/car`,
-      `Ownership: ${money(r.ownershipAnnual)}/year (${money(r.ownershipPerCarYear)}/car/year)`,
-      `Rental program: ${money(r.outsourcingAnnual)}/year at ${money2(d.dailyRentalRate)}/day, ${pct(d.utilizationPercent)} utilization`,
+      `Owned fleet: gross ${money(r.ownershipAnnual)}/year; shop MPI revenue ${money(r.ownedFleetMPIRevenueAnnual)}/year; net ${money(r.ownershipNetAnnual)}/year`,
+      `Rental program shop cost: ${money(r.outsourcingAnnual)}/year; ${pct(d.internalRentalPercent)} internal at ${money2(d.dailyRentalRate)}/day; MPI share ${pct(100-d.internalRentalPercent)}; utilization ${pct(d.utilizationPercent)}`,
       `Financial gap (positive = added cost): ${money(r.preReciprocalGap)}/year`,
       `Already entered reciprocal contribution: ${money(r.verifiedReciprocalProfit)}/year`,
       `Still-required reciprocal contribution: ${money(r.requiredReciprocalProfit)}/year`,
       `Effective rate to break even: ${r.breakEvenRate==null?'N/A':money2(r.breakEvenRate)}/day`,
-      `Note: indicative estimates, not audited actuals. Confirm registration/insurance/tax eligibility.`].join('\n');
+      `Note: MPI direct billing of the non-internal share requires coverage approval; 20 preexisting U-Drive MPI rentals are excluded. Indicative costs, not audited actuals.`].join('\n');
     if(navigator.clipboard?.writeText) navigator.clipboard.writeText(txt).then(()=>status('Summary copied')).catch(()=>fallbackCopy(txt));
     else fallbackCopy(txt);
   }
