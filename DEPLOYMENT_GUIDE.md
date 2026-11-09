@@ -68,7 +68,7 @@ Authenticate when GitHub prompts you. GitHub does not accept account passwords f
 3. Change the holding period to 2, 3 and 4 years so stakeholders can see resale and annual depreciation move.
 4. Move the utilization slider from 80% to 60% and show how billed rental days change.
 5. Move the rental rate from $35 down toward the displayed break-even level. Make clear this is an **illustrative target, not an approved offered rate**.
-6. Set contribution margin and enter verified annual incremental referral contribution. Show remaining shortfall and required gross referred sales.
+6. Enter **verified incremental repair-referral contribution profit directly** (not gross referral sales). No contribution-margin input is used. Observe the modeled net benefit after reciprocal contributions.
 7. Click `Copy summary` / `Export numbers` to capture a snapshot for follow-up.
 
 ## 8. Typical questions you will get
@@ -79,7 +79,7 @@ Authenticate when GitHub prompts you. GitHub does not accept account passwords f
 
 **Does 20 hours/week save $22,500 of payroll?** No. It represents staff-time opportunity cost; cash savings require actual payroll reduction, and economic savings require productive redeployment.
 
-**Why is the $35/day cost higher than ownership?** At 80% utilization, 40 × 0.8 × 30 × 12 = 11,520 billable days. At $35/day this totals $403,200/year. The direct five-category ownership benchmark in the working scenario is substantially lower. The model quantifies rather than conceals the gap.
+**How is the $35/day mixed-payer base case calculated?** At 80% utilization, the 40-car replacement pool yields 40 × 0.8 × 30 × 12 = 11,520 rental days/year. Of these, 30% (3,456 days) are assumed shop-paid at the proposed $35/day rate = $120,960/year. The other 70% (8,064 days) are assumed eligible for MPI direct billing, subject to approval. Existing ~20 U-Drive MPI rentals are out of scope. The shop currently receives $0/day from MPI on its owned free loaners in the working case.
 
 **What if MPI covers rentals?** Enter only the genuinely verified third-party paid percentage. Do not automatically assume loss-of-use authorization for internal courtesy replacements.
 
