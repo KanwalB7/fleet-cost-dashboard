@@ -1,4 +1,4 @@
-# Roadmap: From downloaded files to a live interactive presentation
+# Roadmap: From downloaded files to a live intrental partnertive presentation
 
 ## 1. Know what you are publishing
 
@@ -22,7 +22,7 @@ The download contains the public-safe dashboard code. **Do not publish the separ
 5. Click **Create repository**.
 6. On the new repository, use **uploading an existing file**, or **Add file → Upload files**.
 7. **Upload the extracted files**, especially `index.html`, `styles.css`, `model.js`, `app.js` and `.nojekyll`. Do **not** upload just the ZIP file; GitHub Pages needs `index.html` at the publishing root.
-8. Add a commit message, such as `Add interactive fleet financial dashboard`, then commit.
+8. Add a commit message, such as `Add intrental partnertive fleet financial dashboard`, then commit.
 
 ## 4. Turn on GitHub Pages
 
@@ -44,7 +44,7 @@ Install Git, create the remote empty repository as above, then run from the **ex
 git init
 git branch -M main
 git add index.html styles.css model.js app.js README.md DEPLOYMENT_GUIDE.md .nojekyll tests
-git commit -m "Build interactive fleet cost dashboard"
+git commit -m "Build intrental partnertive fleet cost dashboard"
 git remote add origin https://github.com/YOUR-USERNAME/fleet-cost-dashboard.git
 git push -u origin main
 ```
@@ -79,9 +79,9 @@ Authenticate when GitHub prompts you. GitHub does not accept account passwords f
 
 **Does 20 hours/week save $22,500 of payroll?** No. It represents staff-time opportunity cost; cash savings require actual payroll reduction, and economic savings require productive redeployment.
 
-**How is the $35/day mixed-payer base case calculated?** At 80% utilization, the 40-car replacement pool yields 40 × 0.8 × 30 × 12 = 11,520 rental days/year. Of these, 30% (3,456 days) are assumed shop-paid at the proposed $35/day rate = $120,960/year. The other 70% (8,064 days) are assumed eligible for MPI direct billing, subject to approval. Existing ~20 U-Drive MPI rentals are out of scope. The shop currently receives $0/day from MPI on its owned free loaners in the working case.
+**How is the $35/day mixed-payer base case calculated?** At 80% utilization, the 40-car replacement pool yields 40 × 0.8 × 30 × 12 = 11,520 rental days/year. Of these, 30% (3,456 days) are assumed shop-paid at the proposed $35/day rate = $120,960/year. The other 70% (8,064 days) are assumed eligible for insurance direct billing, subject to approval. Existing ~20 current rental provider insurance rentals are out of scope. The shop currently receives $0/day from insurance on its owned free loaners in the working case.
 
-**What if MPI covers rentals?** Enter only the genuinely verified third-party paid percentage. Do not automatically assume loss-of-use authorization for internal courtesy replacements.
+**What if insurance covers rentals?** Enter only the genuinely verified third-party paid percentage. Do not automatically assume loss-of-use authorization for internal courtesy replacements.
 
 ## 9. Editing or improving the code
 
