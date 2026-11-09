@@ -1,0 +1,30 @@
+name: Financial Model Tests
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'model.js'
+      - 'app.js'
+      - 'index.html'
+      - 'tests/model.test.js'
+      - '.github/workflows/model-tests.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: |
+          node --check model.js
+          node --check app.js
+          node --check tests/model.test.js
+      - name: Run financial regression tests
+        run: node tests/model.test.js
