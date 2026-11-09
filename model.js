@@ -153,7 +153,8 @@
     const internalRentalDaysAnnual = annualRentalDays * internalFraction;
     const insuranceRentalDaysAnnual = annualRentalDays * insuranceFraction;
     const bodyShopRentalAnnual = internalRentalDaysAnnual * d.dailyRentalRate;
-    // All-days equivalent is a reference calculation only, NOT actual\n    // provider invoicing: insurers may reimburse at a different rate.
+    // All-days equivalent is a reference calculation only, NOT actual
+    // provider invoicing: insurers may reimburse at a different rate.
     const allDaysRateEquivalentAnnual = annualRentalDays * d.dailyRentalRate;
     const ownedFleetInsuranceReceiptsAnnual = d.fleetSize * d.utilizationPercent / 100
       * d.daysPerMonth * 12 * insuranceFraction * d.shopInsuranceReimbursementPerDay;
