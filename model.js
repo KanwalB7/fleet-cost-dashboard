@@ -11,10 +11,7 @@
     fleetSize: 40,
     acquisitionPrice: 25000,
     holdingYears: 3,
-    depreciationMode: 'reported',
     monthlyDepreciationPercent: 1,
-    retention2Percent: 70,
-    retention4Percent: 57,
     resalePenaltyPercent: 0,
     taxesMode: 'proxy',
     licenseProxyMonthly: 6,
@@ -44,15 +41,14 @@
     utilizationPercent: 80,
     averageRentalDays: 10,
     daysPerMonth: 30,
-    dailyRentalRate: 25,
+    dailyRentalRate: 35,
     targetEffectiveRate: 25,
     internalRentalPercent: 30,
     shopMPIRevenuePerDay: 0,
     onSiteMonthlyFee: 0,
     oneTimeTransitionCost: 0,
     transitionYears: 1,
-    reciprocalMarginPercent: 25,
-    annualRepairReferralRevenue: 0,
+    annualRepairReferralProfit: 0,
     annualBuybackContribution: 0,
     annualOtherReciprocalContribution: 0,
     confirmedAnnualReciprocalProfit: 0
@@ -68,18 +64,21 @@
   const nonneg = x => Math.max(0, number(x));
 
   function normalized(data) {
-    const d = Object.assign({}, PUBLIC_DEFAULTS, data || {});
+    // Whitelist supported inputs, dropping removed legacy scenario settings.
+    const d = {...PUBLIC_DEFAULTS};
+    if (data && typeof data === 'object') {
+      for (const key of Object.keys(PUBLIC_DEFAULTS)) {
+        if (Object.prototype.hasOwnProperty.call(data, key)) d[key] = data[key];
+      }
+    }
     d.fleetSize = Math.max(1, Math.round(number(d.fleetSize, 40)));
     d.acquisitionPrice = nonneg(d.acquisitionPrice);
     d.holdingYears = bound(Math.round(number(d.holdingYears, 3)), 1, 10);
     d.monthlyDepreciationPercent = bound(d.monthlyDepreciationPercent, 0, 100);
-    d.retention2Percent = bound(d.retention2Percent, 0, 100);
-    d.retention4Percent = bound(d.retention4Percent, 0, 100);
     d.resalePenaltyPercent = bound(d.resalePenaltyPercent, 0, 100);
     d.vehiclesReplaced = bound(Math.round(number(d.vehiclesReplaced, 40)), 0, d.fleetSize);
     d.utilizationPercent = bound(d.utilizationPercent, 0, 100);
     d.internalRentalPercent = bound(d.internalRentalPercent, 0, 100);
-    d.reciprocalMarginPercent = bound(d.reciprocalMarginPercent, 0, 100);
     d.purchaseTaxPercent = bound(d.purchaseTaxPercent, 0, 100);
     d.daysPerMonth = bound(d.daysPerMonth, 1, 31);
     d.averageRentalDays = Math.max(0.25, number(d.averageRentalDays, 10));
@@ -91,10 +90,9 @@
       'liabilityMonthly','miscellaneousMonthly','fuelMonthly','additionalInsuranceMonthly','damageAnnualPerCar',
       'interestMonthly','damageReserveMonthly','annualSalary','personnelHoursWeekly',
       'additionalAnnualPersonnelCost','dailyRentalRate','targetEffectiveRate','onSiteMonthlyFee','oneTimeTransitionCost',
-      'confirmedAnnualReciprocalProfit','annualRepairReferralRevenue','annualBuybackContribution','annualOtherReciprocalContribution',
+      'confirmedAnnualReciprocalProfit','annualRepairReferralProfit','annualBuybackContribution','annualOtherReciprocalContribution',
       'shopMPIRevenuePerDay'
     ]) d[key] = nonneg(d[key]);
-    d.depreciationMode = d.depreciationMode === 'monthly' ? 'monthly' : 'reported';
     d.taxesMode = d.taxesMode === 'itemized' ? 'itemized' : 'proxy';
     if (!['average', 'sum', 'custom'].includes(d.maintenanceMode)) d.maintenanceMode = 'average';
     d.includeInterest = d.includeInterest === true;
@@ -103,8 +101,6 @@
   }
 
   function retention(d, years) {
-    if (d.depreciationMode === 'reported' && years === 2) return d.retention2Percent / 100;
-    if (d.depreciationMode === 'reported' && years === 4) return d.retention4Percent / 100;
     return Math.pow(1 - d.monthlyDepreciationPercent / 100, years * 12);
   }
 
@@ -169,15 +165,12 @@
     const outsourcingAnnual = retainedOwnedAnnual - retainedOwnedMPIRevenueAnnual
       + bodyShopRentalAnnual + onSiteAndTransitionAnnual;
     const preReciprocalGap = outsourcingAnnual - ownershipNetAnnual;
-    const marginFraction = d.reciprocalMarginPercent / 100;
-    const calculatedRepairContribution = d.annualRepairReferralRevenue * marginFraction;
+    // Repair referral input is verified incremental contribution profit, never gross sales.
+    const calculatedRepairContribution = d.annualRepairReferralProfit;
     const verifiedReciprocalProfit = d.confirmedAnnualReciprocalProfit + calculatedRepairContribution
       + d.annualBuybackContribution + d.annualOtherReciprocalContribution;
     const netGap = preReciprocalGap - verifiedReciprocalProfit;
     const requiredReciprocalProfit = Math.max(0, netGap);
-    const requiredReciprocalRevenue = marginFraction > 0
-      ? requiredReciprocalProfit / marginFraction
-      : (requiredReciprocalProfit > 0 ? null : 0);
     const denominator = internalRentalDaysAnnual;
     const breakEvenRate = denominator > 0
       ? Math.max(0, (ownershipNetAnnual - retainedOwnedAnnual + retainedOwnedMPIRevenueAnnual
@@ -205,7 +198,7 @@
       avgActiveRentals: carsReplaced * d.utilizationPercent / 100,
       grossEnterpriseAnnual, bodyShopRentalAnnual,
       onSiteAndTransitionAnnual, retainedOwnedAnnual, outsourcingAnnual,
-      preReciprocalGap, netGap, requiredReciprocalProfit, requiredReciprocalRevenue,
+      preReciprocalGap, netGap, requiredReciprocalProfit,
       calculatedRepairContribution, verifiedReciprocalProfit,
       targetEffectiveRateGap: Math.max(0, d.dailyRentalRate - d.targetEffectiveRate) * internalRentalDaysAnnual,
       breakEvenRate, savingsBeforeReciprocal, savingsAfterReciprocal,
