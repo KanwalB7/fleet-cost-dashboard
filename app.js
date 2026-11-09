@@ -17,10 +17,7 @@
       {key:'fleetSize',label:'Owned loaners in current fleet',min:1,max:300,step:1,slider:true,unit:'cars'},
       {key:'acquisitionPrice',label:'Vehicle purchase price',min:0,max:90000,step:500,unit:'CAD / car',slider:true},
       {key:'holdingYears',label:'Selected ownership holding period',min:1,max:10,step:1,unit:'years',help:'The active model; the comparison also shows years 2, 3 and 4.'},
-      {key:'depreciationMode',label:'How to calculate resale',type:'select',options:[['reported','2y / 3y / 4y scenario assumptions'],['monthly','Compounded monthly rate for all years']],help:'Scenario mode uses 70% for 2y, 1% monthly for 3y, 57% for 4y.'},
       {key:'monthlyDepreciationPercent',label:'Monthly compounded depreciation',min:0,max:5,step:0.05,unit:'% / month',slider:true},
-      {key:'retention2Percent',label:'2-year resale retention',min:0,max:100,step:0.5,unit:'%',showIf:{key:'depreciationMode',value:'reported'}},
-      {key:'retention4Percent',label:'4-year resale retention',min:0,max:100,step:0.5,unit:'%',showIf:{key:'depreciationMode',value:'reported'}},
       {key:'resalePenaltyPercent',label:'Resale penalty from damage / wear',min:0,max:50,step:0.5,unit:'% of residual',help:'Reduces resale value. Do not also count the same value loss as repair costs.'}
     ]},
     {title:'02  ·  Taxes, plates & maintenance',open:true,fields:[
@@ -65,8 +62,7 @@
       {key:'onSiteMonthlyFee',label:'On-site counter cost to body shop',min:0,max:30000,step:50,unit:'CAD / month'},
       {key:'oneTimeTransitionCost',label:'One-time changeover cost',min:0,max:100000,step:500,unit:'CAD'},
       {key:'transitionYears',label:'Spread transition expense across',min:.1,max:10,step:.1,unit:'years'},
-      {key:'reciprocalMarginPercent',label:'Contribution margin on reciprocal sales',min:0,max:100,step:1,unit:'%',slider:true,help:'Referrals revenue × this margin = incremental profit; not total sales revenue.'},
-      {key:'annualRepairReferralRevenue',label:'Expected referred repair sales',min:0,max:2000000,step:1000,unit:'CAD / year',help:'Converted into profit using the contribution margin above.'},
+      {key:'annualRepairReferralProfit',label:'Verified repair-referral contribution profit',min:0,max:500000,step:500,unit:'CAD / year',help:'Enter incremental profit, NOT gross repair sales revenue. No assumed conversion margin is applied.'},
       {key:'annualBuybackContribution',label:'Vehicle buyback contribution profit',min:0,max:500000,step:500,unit:'CAD / year',help:'Incremental profit from buybacks; not the gross vehicle sales amount.'},
       {key:'annualOtherReciprocalContribution',label:'Other reciprocal contribution profit',min:0,max:500000,step:500,unit:'CAD / year'},
       {key:'confirmedAnnualReciprocalProfit',label:'Other verified manual contribution profit',min:0,max:500000,step:500,unit:'CAD / year',help:'Additional profit not included in repair referrals, buybacks or other reciprocal category. Avoid double counting.'}
@@ -76,6 +72,7 @@
   function safe(s) {return String(s).replace(/[&<>"']/g, a => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[a]));}
   function money(n) {return CAD.format(n || 0);}
   function money2(n) {return CAD2.format(n || 0);}
+  function signedMoney(n) {return n > 0.004 ? '+'+money(n) : n < -0.004 ? '−'+money(-n) : money(0);}
   function num(n) {return NUM.format(n || 0);}
   function pct(n) {return PCT.format(n || 0) + '%';}
   function stateInputValue(key) {return scenario[key] == null ? '' : scenario[key];}
@@ -155,9 +152,7 @@
     const years=[2,3,4], arr=years.map(y=>calculate(scenario,y));
     const max=Math.max(1,...arr.map(x=>x.ownershipNetAnnual));
     $('holdingChart').innerHTML=arr.map(x=>`<div class="hold-row ${x.years===result.years?'active':''}"><span class="hold-label">${x.years} YEARS</span><div class="hold-track"><div class="hold-fill" style="width:${x.ownershipNetAnnual/max*100}%"></div></div><strong class="hold-value">${money(x.ownershipNetAnnual)}</strong></div>`).join('');
-    const note=result.input.depreciationMode==='monthly'
-      ? `All three holding periods use ${pct(result.input.monthlyDepreciationPercent)} compounded monthly depreciation. Other assumptions remain constant.`
-      : `2-year ${pct(result.input.retention2Percent)} retention; 3-year ${pct(result.retentionPercent)} retention at the monthly rate; 4-year ${pct(result.input.retention4Percent)} retention. These are distinct scenarios, not a single observed depreciation curve.`;
+    const note=`All holding periods use ${pct(result.input.monthlyDepreciationPercent)} compounded monthly depreciation over the applicable months. Other assumptions remain constant.`;
     document.querySelector('.small-note').textContent=note;
   }
   function renderTable(result) {
@@ -202,21 +197,22 @@
     $('kpiRetention').textContent=pct(100*r.resalePerCar/Math.max(1,d.acquisitionPrice));
     $('kpiRental').textContent=money(r.outsourcingAnnual);
     $('kpiRentalFoot').textContent=`${num(r.internalRentalDaysAnnual)} shop-paid days · ${num(r.mpiRentalDaysAnnual)} MPI days`;
-    $('kpiGap').textContent=money(Math.abs(r.preReciprocalGap));
-    $('kpiGapFoot').textContent=r.preReciprocalGap>0?'Additional cost vs. ownership':r.preReciprocalGap<0?'Savings vs. ownership':'Break-even before referrals';
-    document.querySelector('.kpi-gap').dataset.positive=String(r.preReciprocalGap>0);
+    // Show signed annual savings: positive is green, negative means added cost and is red.
+    $('kpiGap').textContent=signedMoney(r.savingsBeforeReciprocal);
+    $('kpiGapFoot').textContent=r.savingsBeforeReciprocal>0?'Savings vs. ownership':r.savingsBeforeReciprocal<0?'Additional cost vs. ownership':'Break-even before referrals';
+    document.querySelector('.kpi-gap').dataset.trend=r.savingsBeforeReciprocal>0?'positive':r.savingsBeforeReciprocal<0?'negative':'neutral';
     $('costPerMonth').textContent=money2(r.ownershipPerCarMonth);
     $('donutTotal').textContent=money(r.ownershipAnnual);
     $('donutVehicleCount').textContent=`${num(d.fleetSize)} vehicles`;
     $('breakEvenRate').textContent=r.breakEvenRate==null?'N/A':money2(r.breakEvenRate);
     $('requiredProfit').textContent=money(r.requiredReciprocalProfit);
-    $('requiredSales').textContent=r.requiredReciprocalRevenue==null?'N/A':money(r.requiredReciprocalRevenue);
+    $('requiredSales').textContent=signedMoney(r.savingsAfterReciprocal);
     $('confirmedProfitLabel').textContent=`Entered reciprocal profit: ${money(r.verifiedReciprocalProfit)}`;
-    $('gapLabel').textContent=`Pre-referral gap: ${money(Math.max(0,r.preReciprocalGap))}`;
+    $('gapLabel').textContent=`Before referrals: ${signedMoney(r.savingsBeforeReciprocal)}`;
     const coverage=r.preReciprocalGap>0? Math.min(100,r.verifiedReciprocalProfit/r.preReciprocalGap*100):100;
     $('reciprocalProgress').firstElementChild.style.width=coverage+'%';
     $('dealInsight').textContent= r.requiredReciprocalProfit > 0
-      ? `Still requires ${r.requiredReciprocalRevenue==null?'a nonzero margin to translate profit into referral sales':money(r.requiredReciprocalRevenue)+' in additional referred sales at '+pct(d.reciprocalMarginPercent)+' contribution margin'}. Bridging the ${money2(d.dailyRentalRate)} paper rate to a ${money2(d.targetEffectiveRate)} effective target alone needs ${money(r.targetEffectiveRateGap)} of annual incremental contribution, which may not fully close the ownership gap.`
+      ? `Still requires ${money(r.requiredReciprocalProfit)} in additional verified contribution profit—not gross sales—to close the modeled gap. Bridging the ${money2(d.dailyRentalRate)} paper rate to a ${money2(d.targetEffectiveRate)} effective target alone would require ${money(r.targetEffectiveRateGap)} of annual incremental value, which may not fully close the ownership gap.`
       : `No remaining contribution shortfall under the entered assumptions. A ${money2(d.targetEffectiveRate)} effective-rate target still requires contractual review; check operational risk separately.`;
     donutSVG(r);renderCompare(r);renderHolding(r);renderTable(r);renderOperating(r);
     updateConditionals();
@@ -246,12 +242,11 @@
       ['Annual contribution to bridge paper rate vs target',r.targetEffectiveRateGap,'CAD/year'],
       ['Rental arrangement annual shop cost',r.outsourcingAnnual,'CAD/year'],
       ['Pre-referral annual gap',r.preReciprocalGap,'CAD/year'],
-      ['Expected repair referral sales',r.input.annualRepairReferralRevenue,'CAD/year'],
-      ['Repair contribution profit',r.calculatedRepairContribution,'CAD/year'],
+      ['Verified repair-referral contribution profit',r.calculatedRepairContribution,'CAD/year'],
       ['Buyback profit',r.input.annualBuybackContribution,'CAD/year'],
       ['Verified annual reciprocal profit',r.verifiedReciprocalProfit,'CAD/year'],
       ['Remaining reciprocal contribution',r.requiredReciprocalProfit,'CAD/year'],
-      ['Required referred sales',r.requiredReciprocalRevenue ?? 'N/A','CAD/year'],
+      ['Net benefit after reciprocal contribution',r.savingsAfterReciprocal,'CAD/year'],
       ['Break-even daily rate',r.breakEvenRate ?? 'N/A','CAD/day']);
     const txt='\ufeff'+rows.map(row=>row.map(csvEscape).join(',')).join('\r\n');
     exportBlob('fleet-cost-analysis.csv',txt,'text/csv;charset=utf-8');status('CSV exported');
@@ -277,7 +272,7 @@
       `Fleet: ${d.fleetSize} × ${money(d.acquisitionPrice)}; resale ${money(r.resalePerCar)}/car`,
       `Owned fleet: gross ${money(r.ownershipAnnual)}/year; shop MPI revenue ${money(r.ownedFleetMPIRevenueAnnual)}/year; net ${money(r.ownershipNetAnnual)}/year`,
       `Rental program shop cost: ${money(r.outsourcingAnnual)}/year; ${pct(d.internalRentalPercent)} internal at ${money2(d.dailyRentalRate)}/day; MPI share ${pct(100-d.internalRentalPercent)}; utilization ${pct(d.utilizationPercent)}`,
-      `Financial gap (positive = added cost): ${money(r.preReciprocalGap)}/year`,
+      `Net financial benefit before referrals (positive = savings): ${signedMoney(r.savingsBeforeReciprocal)}/year`,
       `Already entered reciprocal contribution: ${money(r.verifiedReciprocalProfit)}/year`,
       `Still-required reciprocal contribution: ${money(r.requiredReciprocalProfit)}/year`,
       `Effective rate to break even: ${r.breakEvenRate==null?'N/A':money2(r.breakEvenRate)}/day`,
