@@ -79,7 +79,7 @@ Authenticate when GitHub prompts you. GitHub does not accept account passwords f
 
 **Does 20 hours/week save $22,500 of payroll?** No. It represents staff-time opportunity cost; cash savings require actual payroll reduction, and economic savings require productive redeployment.
 
-**How is the $35/day mixed-payer base case calculated?** At 80% utilization, the 40-car replacement pool yields 40 × 0.8 × 30 × 12 = 11,520 rental days/year. Of these, 30% (3,456 days) are assumed shop-paid at the proposed $35/day rate = $120,960/year. The other 70% (8,064 days) are assumed eligible for insurance direct billing, subject to approval. Existing ~20 current rental provider insurance rentals are out of scope. The shop currently receives $0/day from insurance on its owned free loaners in the working case.
+**How is the $35/day mixed-payer base case calculated?** At 80% utilization, the 40-car replacement pool yields 40 × 0.8 × 30 × 12 = 11,520 rental days/year. Of these, 30% (3,456 days) are assumed shop-paid at the proposed $35/day rate = $120,960/year. The other 70% (8,064 days) are assumed eligible for insurance direct billing, subject to approval. Existing insurance-reimbursed rentals with the current rental provider are outside the owned-loaner conversion pool. The shop currently receives an assumed $0/day in insurer reimbursement on its owned free loaners in the working case.
 
 **What if insurance covers rentals?** Enter only the genuinely verified third-party paid percentage. Do not automatically assume loss-of-use authorization for internal courtesy replacements.
 
