@@ -24,10 +24,10 @@ test('maintenance averages external and internal',()=>{
 test('personnel allocation based on 20 hours of a 40-hour week',()=>{
  const r=calculate(PUBLIC_DEFAULTS);approx(r.personnelFleetAnnual,22500);approx(r.personnelPerCarYear,562.5);
 });
-test('insurance revenue on shop-owned loaners reduces ownership net',()=>{
- const r=calculate({...PUBLIC_DEFAULTS,shopinsuranceRevenuePerDay:10});
- approx(r.ownedFleetinsuranceRevenueAnnual,r.insuranceRentalDaysAnnual*10);
- approx(r.ownershipNetAnnual,r.ownershipAnnual-r.ownedFleetinsuranceRevenueAnnual);
+test('insurer receipts on shop-owned loaners reduce net ownership cost',()=>{
+ const r=calculate({...PUBLIC_DEFAULTS,shopInsuranceReimbursementPerDay:10});
+ approx(r.ownedFleetInsuranceReceiptsAnnual,r.insuranceRentalDaysAnnual*10);
+ approx(r.ownershipNetAnnual,r.ownershipAnnual-r.ownedFleetInsuranceReceiptsAnnual);
 });
 test('internal rental mix changes shop cost proportionally',()=>{
  const r=calculate({...PUBLIC_DEFAULTS,internalRentalPercent:50});
