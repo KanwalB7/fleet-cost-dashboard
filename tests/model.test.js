@@ -9,6 +9,31 @@ test('proposed $35 rate with 70% insurer-reimbursed and 30% shop-paid days',()=>
  approx(r.internalRentalDaysAnnual,3456);approx(r.insuranceRentalDaysAnnual,8064);
  approx(r.bodyShopRentalAnnual,120960);approx(r.monthlyContracts,96);
 });
+test('financing APR is optional and disabled in the baseline',()=>{
+ const r=calculate(PUBLIC_DEFAULTS);
+ approx(PUBLIC_DEFAULTS.financingRatePercent,6);
+ assert.equal(PUBLIC_DEFAULTS.includeInterest,false);
+ approx(r.financingInterestPerCarYear,0);
+ approx(r.financingInterestFleetAnnual,0);
+ approx(r.ownershipAnnual,250031.59);
+});
+test('6% annual flat financing rate is based on acquisition cost per vehicle',()=>{
+ const a=calculate({...PUBLIC_DEFAULTS,includeInterest:false,financingRatePercent:6});
+ const b=calculate({...PUBLIC_DEFAULTS,includeInterest:true,financingRatePercent:6});
+ approx(b.financingInterestPerCarYear,1500);
+ approx(b.financingInterestFleetAnnual,60000);
+ approx(b.ownershipAnnual-a.ownershipAnnual,60000);
+ approx(b.savingsBeforeReciprocal-a.savingsBeforeReciprocal,60000);
+});
+test('changing vehicle purchase price updates financing interest proportionally',()=>{
+ const r=calculate({...PUBLIC_DEFAULTS,includeInterest:true,financingRatePercent:6,acquisitionPrice:30000});
+ approx(r.financingInterestPerCarYear,1800);
+});
+test('old monthly interest amount does not override the new APR input',()=>{
+ const cfg=normalized({...PUBLIC_DEFAULTS,interestMonthly:500,includeInterest:true,financingRatePercent:6});
+ assert.equal('interestMonthly' in cfg,false);
+ approx(calculate(cfg).financingInterestPerCarYear,1500);
+});
 test('resale uses compounded monthly rate for every holding period',()=>{
  for(const y of [2,3,4,6])approx(calculate(PUBLIC_DEFAULTS,y).resalePerCar,25000*Math.pow(.99,y*12));
 });
