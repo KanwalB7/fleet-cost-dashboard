@@ -24,10 +24,9 @@
     internalMaintenanceMonthly: 35,
     maintenanceMode: 'average',
     customMaintenanceMonthly: 45,
-    liabilityMonthly: 70,
     miscellaneousMonthly: 7,
     fuelMonthly: 3,
-    additionalInsuranceMonthly: 0,
+    insuranceMonthly: 200,
     damageAnnualPerCar: 0,
     interestMonthly: 0,
     includeInterest: false,
@@ -87,7 +86,7 @@
     for (const key of [
       'licenseProxyMonthly','registrationAnnual','plateOneTime','dealerUseTaxMonthly',
       'otherTaxAnnual','externalMaintenanceMonthly','internalMaintenanceMonthly','customMaintenanceMonthly',
-      'liabilityMonthly','miscellaneousMonthly','fuelMonthly','additionalInsuranceMonthly','damageAnnualPerCar',
+      'miscellaneousMonthly','fuelMonthly','insuranceMonthly','damageAnnualPerCar',
       'interestMonthly','damageReserveMonthly','annualSalary','personnelHoursWeekly',
       'additionalAnnualPersonnelCost','dailyRentalRate','targetEffectiveRate','onSiteMonthlyFee','oneTimeTransitionCost',
       'confirmedAnnualReciprocalProfit','annualRepairReferralProfit','annualBuybackContribution','annualOtherReciprocalContribution',
@@ -122,7 +121,7 @@
         : d.customMaintenanceMonthly;
     const maintenancePerCarYear = maintenancePerCarMonth * 12;
     const miscellaneousPerCarYear = (
-      d.liabilityMonthly + d.miscellaneousMonthly + d.fuelMonthly + d.additionalInsuranceMonthly
+      d.miscellaneousMonthly + d.fuelMonthly
       + (d.includeInterest ? d.interestMonthly : 0)
       + (d.includeDamageReserve ? d.damageReserveMonthly : 0)
     ) * 12 + d.damageAnnualPerCar;
@@ -131,9 +130,9 @@
     const personnelPerCarYear = personnelFleetAnnual / d.fleetSize;
     const categories = [
       {key:'depreciation', label:'Depreciation', annualPerCar:depreciationPerCarYear, color:'#78e3aa'},
-      {key:'license', label:'Taxes & licence', annualPerCar:licensePerCarYear, color:'#90b5ee'},
+      {key:'license', label:'Taxes, licences & insurance', annualPerCar:licensePerCarYear + d.insuranceMonthly*12, color:'#90b5ee'},
       {key:'maintenance', label:'Maintenance', annualPerCar:maintenancePerCarYear, color:'#f4c77d'},
-      {key:'misc', label:'Misc. + liability', annualPerCar:miscellaneousPerCarYear, color:'#dca6ec'},
+      {key:'misc', label:'Miscellaneous & fuel', annualPerCar:miscellaneousPerCarYear, color:'#dca6ec'},
       {key:'personnel', label:'Personnel', annualPerCar:personnelPerCarYear, color:'#f28d88'}
     ];
     const ownershipPerCarYear = categories.reduce((sum, x) => sum + x.annualPerCar, 0);
