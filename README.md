@@ -16,8 +16,9 @@ A complete **HTML + CSS + JavaScript** intrental partnertive model. No Node.js, 
 - **Resale at every hold length (2, 3, 4 years or custom)** = `Acquisition price × (1 − monthly depreciation %)^(12 × holding years)`. The old editable 2-year and 4-year separate retention assumptions have been removed.
 - **Taxes, licences & insurance** = 12 × (monthly tax/licence proxy + independently entered monthly vehicle insurance allowance); alternatively use itemized tax/registration instead of the proxy, and still add the insurance allowance. Do not stack duplicate tax methods.
 - **Maintenance** = 12 × `[ (external + internal) / 2 ]` by default. The user can select `Sum` or `Custom`.
-- **Miscellaneous & fuel** = 12 × (monthly general misc + fuel + optionally enabled interest/reserve), plus annual uninsured damage expense. The former DR liability input has been removed entirely; the separate insurance input is counted only under taxes, licences & insurance.
+- **Miscellaneous & fuel** = 12 × (monthly general misc + fuel + any enabled monthly damage reserve), plus annual uninsured damage expense and the optional flat-principal financing interest. The former DR liability input has been removed entirely; the separate insurance input is counted only under taxes, licences & insurance.
 - **Personnel** = annual salary × (loaner-management hours / full-time hours), plus any annual staffing supplement. Staff expenses for a partially retained fleet are allocated proportionally.
+- **Optional financing interest proxy** = vehicle acquisition price × annual financing rate (%) ÷ 100, **per car per year**. Default rate is 6% but the **Include financing** switch defaults off. A $25,000 vehicle at 6% adds $1,500/year ($125/month); for 40 cars, $60,000/year. This is a *flat purchase-price proxy*, not a declining-principal amortization or full loan payment. If there is a down payment, the actual financed principal would be lower; use actual loan terms for precise borrowing costs.
 - **Owned annual cost** = sum of five annual per-car expenses × number of owned vehicles.
 - **Rental billable days/year** = cars replaced × rental utilization × days/month × 12.
 - **Average contracts/month** = billable days/month ÷ average contract length. Contract length affects turnover, **not rental-day cost** when utilization is held fixed.
@@ -73,3 +74,8 @@ The live dashboard uses a **$35/day proposed shop-paid internal rental rate** in
 - **Insurer reimbursement earned by the shop on its *own* loaners ($/eligible rental day)**: $0 default. A positive amount reduces the original owned-fleet cost and any remaining owned cars' costs; it is **not** assumed to be revenue paid to the shop when the replacement rental provider supplies the vehicle.
 
 The public demo uses a $35/day proposed *shop-paid* internal rental rate and a 40-car conversion pool. Existing insurance-funded rentals serviced by the current rental provider are outside the modeled conversion. At 80% utilization and a 30-day commercial month, 40 × 80% × 30 = 960 monthly rental days; 288 are shop-paid ($10,080 monthly) and 672 are assumed insurance-reimbursed directly to the provider. With the updated five-category illustrative ownership benchmark of **$250,032/year** (including $200/car/month insurance and a $22,500 annual staff-time allocation), the projected shop-paid rental cost is **$120,960/year** and the potential reduction in modeled annual economic costs is **$129,072/year**, before changes in operating costs or denied insurance claims. **Do not upload private financial assumptions to this public repository.**
+
+
+### Financing input migration
+
+The previous `interestMonthly` dollar input has been replaced by `financingRatePercent` (annual percentage, illustrative default `6`) and `includeInterest` (default `false`). Old scenarios that contain `interestMonthly` will have that obsolete field ignored. To include financing, enter an annual rate and enable the interest checkbox.
