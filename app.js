@@ -20,9 +20,10 @@
       {key:'monthlyDepreciationPercent',label:'Monthly compounded depreciation',min:0,max:5,step:0.05,unit:'% / month',slider:true},
       {key:'resalePenaltyPercent',label:'Resale penalty from damage / wear',min:0,max:50,step:0.5,unit:'% of residual',help:'Reduces resale value. Do not also count the same value loss as repair costs.'}
     ]},
-    {title:'02  ·  Taxes, plates & maintenance',open:true,fields:[
+    {title:'02  ·  Taxes, licences, insurance & maintenance',open:true,fields:[
       {key:'taxesMode',label:'Taxes and licensing method',type:'select',options:[['proxy','Monthly proxy cost'],['itemized','Manitoba itemized scenario']],help:'Use one method at a time to avoid double counting.'},
-      {key:'licenseProxyMonthly',label:'Monthly licence/tax proxy',min:0,max:500,step:.1,unit:'CAD / car',showIf:{key:'taxesMode',value:'proxy'},help:'An illustrative expense proxy; not verified all-in Manitoba coverage.'},
+      {key:'licenseProxyMonthly',label:'Monthly taxes & licences proxy',min:0,max:500,step:.1,unit:'CAD / car',showIf:{key:'taxesMode',value:'proxy'},help:'Original expense benchmark; does not include the separate monthly insurance allowance.'},
+      {key:'insuranceMonthly',label:'Monthly fleet insurance allowance',min:0,max:800,step:5,unit:'CAD / car/month',slider:true,help:'Base-case $200/car/month is a planning allowance, NOT a verified insurance premium. It is counted once in Taxes, licences & insurance.'},
       {key:'registrationAnnual',label:'Annual registration',min:0,max:600,step:1,unit:'CAD / car',showIf:{key:'taxesMode',value:'itemized'}},
       {key:'plateOneTime',label:'One-time plate expense',min:0,max:300,step:1,unit:'CAD / car',showIf:{key:'taxesMode',value:'itemized'}},
       {key:'dealerUseTaxMonthly',label:'Qualifying dealer-use tax',min:0,max:500,step:1,unit:'CAD / car/month',showIf:{key:'taxesMode',value:'itemized'},help:'Only use if tax treatment is applicable and confirmed.'},
@@ -34,10 +35,8 @@
       {key:'customMaintenanceMonthly',label:'Custom maintenance amount',min:0,max:1000,step:1,unit:'CAD / car/month',showIf:{key:'maintenanceMode',value:'custom'}}
     ]},
     {title:'03  ·  Miscellaneous & risk',open:false,fields:[
-      {key:'liabilityMonthly',label:'Liability / coverage expense proxy',min:0,max:500,step:.01,unit:'CAD / car/month'},
       {key:'miscellaneousMonthly',label:'Keys, towing & general miscellaneous',min:0,max:200,step:.01,unit:'CAD / car/month'},
       {key:'fuelMonthly',label:'Unrecovered fuel allowance',min:0,max:100,step:.5,unit:'CAD / car/month'},
-      {key:'additionalInsuranceMonthly',label:'Additional vehicle insurance (if not above)',min:0,max:500,step:5,unit:'CAD / car/month',help:'Include only if not already covered by liability proxy; avoid double counting.'},
       {key:'damageAnnualPerCar',label:'Expected uninsured damage expense',min:0,max:5000,step:50,unit:'CAD / car/year',help:'Repairs and deductibles only. Resale penalty is entered separately.'},
       {key:'interestMonthly',label:'Financing interest proxy (optional)',min:0,max:500,step:1,unit:'CAD / car/month'},
       {key:'includeInterest',label:'Include financing interest in comparison',type:'checkbox',help:'Off by default, matching the supplied cost analysis.'},
@@ -161,8 +160,8 @@
     $('costTableFoot').innerHTML=`<tr><td>GROSS OWNERSHIP COST</td><td>${money2(result.ownershipPerCarMonth)}</td><td>${money2(result.ownershipPerCarYear)}</td><td>${money(result.ownershipAnnual)}</td></tr><tr><td>Less: insurer payments on owned loaners</td><td>−${money2(result.ownedFleetInsuranceReceiptsAnnual / result.input.fleetSize / 12)}</td><td>−${money2(result.ownedFleetInsuranceReceiptsAnnual / result.input.fleetSize)}</td><td>−${money(result.ownedFleetInsuranceReceiptsAnnual)}</td></tr><tr><td>NET OWNERSHIP COST</td><td>${money2(result.ownershipNetAnnual/result.input.fleetSize/12)}</td><td>${money2(result.ownershipNetAnnual/result.input.fleetSize)}</td><td>${money(result.ownershipNetAnnual)}</td></tr>`;
     const d=result.input;
     $('taxesFineprint').textContent=d.taxesMode==='proxy'
-      ? `Taxes & licensing are modeled at ${money2(d.licenseProxyMonthly)}/car/month. This proxy is not a verified, all-inclusive local insurance, licensing and registration quote.`
-      : `Itemized registration and tax assumptions depend on local eligibility. Check actual insurance, purchase tax treatment and dealership status before presenting as factual costs.`;
+      ? `Taxes, licences & insurance = ${money2(d.licenseProxyMonthly)} monthly taxes/licence proxy + ${money2(d.insuranceMonthly)} monthly fleet insurance allowance per car. Insurance is assumed and must be verified; no DR liability amount is separately included.`
+      : `Taxes, licences & insurance includes itemized local tax/registration plus ${money2(d.insuranceMonthly)}/car/month insurance. Confirm actual premiums, taxes and dealership eligibility; no DR liability amount is separately included.`;
   }
   function renderOperating(result) {
     const d=result.input;
