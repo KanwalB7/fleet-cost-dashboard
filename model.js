@@ -28,7 +28,7 @@
     fuelMonthly: 3,
     insuranceMonthly: 200,
     damageAnnualPerCar: 0,
-    interestMonthly: 0,
+    financingRatePercent: 6,
     includeInterest: false,
     damageReserveMonthly: 0,
     includeDamageReserve: false,
@@ -79,6 +79,7 @@
     d.utilizationPercent = bound(d.utilizationPercent, 0, 100);
     d.internalRentalPercent = bound(d.internalRentalPercent, 0, 100);
     d.purchaseTaxPercent = bound(d.purchaseTaxPercent, 0, 100);
+    d.financingRatePercent = bound(d.financingRatePercent, 0, 100);
     d.daysPerMonth = bound(d.daysPerMonth, 1, 31);
     d.averageRentalDays = Math.max(0.25, number(d.averageRentalDays, 10));
     d.fullTimeHoursWeekly = Math.max(1, number(d.fullTimeHoursWeekly, 40));
@@ -87,7 +88,7 @@
       'licenseProxyMonthly','registrationAnnual','plateOneTime','dealerUseTaxMonthly',
       'otherTaxAnnual','externalMaintenanceMonthly','internalMaintenanceMonthly','customMaintenanceMonthly',
       'miscellaneousMonthly','fuelMonthly','insuranceMonthly','damageAnnualPerCar',
-      'interestMonthly','damageReserveMonthly','annualSalary','personnelHoursWeekly',
+      'damageReserveMonthly','annualSalary','personnelHoursWeekly',
       'additionalAnnualPersonnelCost','dailyRentalRate','targetEffectiveRate','onSiteMonthlyFee','oneTimeTransitionCost',
       'confirmedAnnualReciprocalProfit','annualRepairReferralProfit','annualBuybackContribution','annualOtherReciprocalContribution',
       'shopInsuranceReimbursementPerDay'
@@ -120,11 +121,14 @@
         ? d.externalMaintenanceMonthly + d.internalMaintenanceMonthly
         : d.customMaintenanceMonthly;
     const maintenancePerCarYear = maintenancePerCarMonth * 12;
+    // Simple, flat-principal financing proxy. This is NOT a declining-balance
+    // amortization schedule; it assumes the entire purchase price as principal.
+    const financingInterestPerCarYear = d.includeInterest
+      ? d.acquisitionPrice * d.financingRatePercent / 100 : 0;
     const miscellaneousPerCarYear = (
       d.miscellaneousMonthly + d.fuelMonthly
-      + (d.includeInterest ? d.interestMonthly : 0)
       + (d.includeDamageReserve ? d.damageReserveMonthly : 0)
-    ) * 12 + d.damageAnnualPerCar;
+    ) * 12 + d.damageAnnualPerCar + financingInterestPerCarYear;
     const personnelFleetAnnual = d.annualSalary * d.personnelHoursWeekly / d.fullTimeHoursWeekly
       + d.additionalAnnualPersonnelCost;
     const personnelPerCarYear = personnelFleetAnnual / d.fleetSize;
@@ -132,7 +136,7 @@
       {key:'depreciation', label:'Depreciation', annualPerCar:depreciationPerCarYear, color:'#78e3aa'},
       {key:'license', label:'Taxes, licences & insurance', annualPerCar:licensePerCarYear + d.insuranceMonthly*12, color:'#90b5ee'},
       {key:'maintenance', label:'Maintenance', annualPerCar:maintenancePerCarYear, color:'#f4c77d'},
-      {key:'misc', label:'Miscellaneous & fuel', annualPerCar:miscellaneousPerCarYear, color:'#dca6ec'},
+      {key:'misc', label:d.includeInterest ? 'Misc., fuel & financing' : 'Miscellaneous & fuel', annualPerCar:miscellaneousPerCarYear, color:'#dca6ec'},
       {key:'personnel', label:'Personnel', annualPerCar:personnelPerCarYear, color:'#f28d88'}
     ];
     const ownershipPerCarYear = categories.reduce((sum, x) => sum + x.annualPerCar, 0);
@@ -186,6 +190,7 @@
       resalePerCar, resaleTotal:resalePerCar * d.fleetSize,
       lifetimeDepreciationPerCar, lifetimeDepreciationFleet:lifetimeDepreciationPerCar * d.fleetSize,
       categories, maintenancePerCarMonth,
+      financingInterestPerCarYear, financingInterestFleetAnnual:financingInterestPerCarYear*d.fleetSize,
       personnelFleetAnnual, personnelPerCarYear,
       ownershipPerCarYear, ownershipPerCarMonth:ownershipPerCarYear / 12,
       ownershipAnnual, ownershipMonthly:ownershipAnnual / 12,
