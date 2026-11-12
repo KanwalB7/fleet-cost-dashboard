@@ -38,8 +38,8 @@
       {key:'miscellaneousMonthly',label:'Keys, towing & general miscellaneous',min:0,max:200,step:.01,unit:'CAD / car/month'},
       {key:'fuelMonthly',label:'Unrecovered fuel allowance',min:0,max:100,step:.5,unit:'CAD / car/month'},
       {key:'damageAnnualPerCar',label:'Expected uninsured damage expense',min:0,max:5000,step:50,unit:'CAD / car/year',help:'Repairs and deductibles only. Resale penalty is entered separately.'},
-      {key:'interestMonthly',label:'Financing interest proxy (optional)',min:0,max:500,step:1,unit:'CAD / car/month'},
-      {key:'includeInterest',label:'Include financing interest in comparison',type:'checkbox',help:'Off by default, matching the supplied cost analysis.'},
+      {key:'financingRatePercent',label:'Annual financing interest rate (optional)',min:0,max:40,step:0.25,unit:'% / year',slider:true,help:'Example: 6% on a $25,000 vehicle = $1,500/car/year ($125/month). Flat purchase-price proxy, not a declining-balance loan schedule. Applied only if financing is enabled.'},
+      {key:'includeInterest',label:'Include financing interest in comparison',type:'checkbox',help:'Off by default. If enabled, annual interest = vehicle purchase price × annual financing interest percentage; not an amortized loan payment.'},
       {key:'damageReserveMonthly',label:'Physical damage reserve (optional)',min:0,max:500,step:1,unit:'CAD / car/month'},
       {key:'includeDamageReserve',label:'Include damage reserve in comparison',type:'checkbox',help:'Off by default. A reserve is not necessarily an incurred cash expense.'}
     ]},
@@ -162,6 +162,9 @@
     $('taxesFineprint').textContent=d.taxesMode==='proxy'
       ? `Taxes, licences & insurance = ${money2(d.licenseProxyMonthly)} monthly taxes/licence proxy + ${money2(d.insuranceMonthly)} monthly fleet insurance allowance per car. Insurance is assumed and must be verified; no DR liability amount is separately included.`
       : `Taxes, licences & insurance includes itemized local tax/registration plus ${money2(d.insuranceMonthly)}/car/month insurance. Confirm actual premiums, taxes and dealership eligibility; no DR liability amount is separately included.`;
+    $('taxesFineprint').textContent += d.includeInterest
+      ? ` Optional financing (included under miscellaneous): ${pct(d.financingRatePercent)} of ${money2(d.acquisitionPrice)} purchase price = ${money2(result.financingInterestPerCarYear)}/vehicle/year, ${money(result.financingInterestFleetAnnual)}/fleet/year. Flat-principal proxy; actual amortizing-loan interest will differ.`
+      : ' Financing interest is excluded; enable the optional annual interest-rate percentage to model it.';
   }
   function renderOperating(result) {
     const d=result.input;
@@ -176,7 +179,8 @@
       ['INITIAL VEHICLE CAPITAL',money(result.acquisitionTotal)],
       ['RESALE PROCEEDS / FLEET',money(result.resaleTotal)],
       ['AVG. CONTRACT VALUE',money(result.costPerTenDayContract)],
-      ['EST. EMPLOYEE TIME / YEAR',money(result.personnelFleetAnnual)]
+      ['EST. EMPLOYEE TIME / YEAR',money(result.personnelFleetAnnual)],
+      ['FINANCING INTEREST / FLEET / YEAR',money(result.financingInterestFleetAnnual)]
     ];
     $('operatingStats').innerHTML=stats.map(([label,val])=>`<div class="operating-stat"><span>${safe(label)}</span><strong>${safe(val)}</strong></div>`).join('');
     let t=`For ${num(d.fleetSize)} free loaners held ${result.years} years, net ownership costs ${money(result.ownershipNetAnnual)}/year. `;
@@ -228,6 +232,9 @@
     const r=calculate(scenario);const rows=[['Metric','Value','Units'],
       ['Client',r.input.clientName,''],['Provider',r.input.providerName,''],
       ['Fleet size',r.input.fleetSize,'cars'],['Vehicle acquisition cost',r.input.acquisitionPrice,'CAD/car'],
+      ['Financing APR proxy',r.input.financingRatePercent,'% annually'],['Include financing cost',r.input.includeInterest,'boolean'],
+      ['Optional financing interest per car',r.financingInterestPerCarYear,'CAD/car/year'],
+      ['Optional financing interest full fleet',r.financingInterestFleetAnnual,'CAD/year'],
       ['Holding years',r.years,'years'],['Residual value per car',r.resalePerCar,'CAD/car'],
       ['Resale proceeds',r.resaleTotal,'CAD fleet'],['Capital depreciation / car / year',r.categories[0].annualPerCar,'CAD/car/year']];
     r.categories.forEach(c=>rows.push([c.label,c.annualPerCar,'CAD/car/year']));
@@ -270,6 +277,7 @@
     const txt=[`${d.clientName} — ${r.years}-year fleet versus rental model`,
       `Fleet: ${d.fleetSize} × ${money(d.acquisitionPrice)}; resale ${money(r.resalePerCar)}/car`,
       `Owned fleet: gross ${money(r.ownershipAnnual)}/year; shop insurance receipts ${money(r.ownedFleetInsuranceReceiptsAnnual)}/year; net ${money(r.ownershipNetAnnual)}/year`,
+      `Optional financing interest: ${d.includeInterest ? pct(d.financingRatePercent) + ' of ' + money(d.acquisitionPrice) + ' purchase price = ' + money(r.financingInterestPerCarYear) + '/vehicle/year (' + money(r.financingInterestFleetAnnual) + ' full fleet)' : 'excluded (annual APR input ' + pct(d.financingRatePercent) + ' only applies when checked)'}`,
       `Rental program shop cost: ${money(r.outsourcingAnnual)}/year; ${pct(d.internalRentalPercent)} internal at ${money2(d.dailyRentalRate)}/day; insurer-reimbursed share ${pct(100-d.internalRentalPercent)}; utilization ${pct(d.utilizationPercent)}`,
       `Net financial benefit before referrals (positive = savings): ${signedMoney(r.savingsBeforeReciprocal)}/year`,
       `Already entered reciprocal contribution: ${money(r.verifiedReciprocalProfit)}/year`,
