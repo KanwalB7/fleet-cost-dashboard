@@ -18,6 +18,20 @@ test('legacy retention and margin inputs are ignored on import',()=>{
  for(const k of ['depreciationMode','retention2Percent','retention4Percent','reciprocalMarginPercent','annualRepairReferralRevenue']) assert.equal(k in v,false);
  approx(calculate(legacy,2).resalePerCar,25000*Math.pow(.99,24));
 });
+test('insured ownership base case reconciles exactly, with original 20-hour staffing',()=>{
+ const r=calculate(PUBLIC_DEFAULTS);
+ approx(r.input.annualSalary,45000);approx(r.input.personnelHoursWeekly,20);approx(r.input.insuranceMonthly,200);
+ approx(r.input.licenseProxyMonthly,6.20);approx(r.input.miscellaneousMonthly,7.37);
+ approx(r.categories[0].annualPerCar,(25000-25000*Math.pow(.99,36))/3);
+ approx(r.categories[1].annualPerCar,(6.2+200)*12);
+ approx(r.categories[2].annualPerCar,((56.98+36.28)/2)*12);
+ approx(r.categories[3].annualPerCar,(7.37+3)*12);
+ approx(r.categories[4].annualPerCar,562.5);
+ approx(r.ownershipAnnual,250031.59);
+ approx(r.savingsBeforeReciprocal,129071.59);
+ assert.equal('liabilityMonthly' in r.input,false);
+ assert.equal('additionalInsuranceMonthly' in r.input,false);
+});
 test('maintenance averages external and internal',()=>{
  approx(calculate({...PUBLIC_DEFAULTS,externalMaintenanceMonthly:56.98,internalMaintenanceMonthly:36.28}).categories[2].annualPerCar,559.56);
 });
@@ -59,6 +73,6 @@ test('partial conversion keeps its remaining owned-fleet expenses',()=>{
 });
 test('itemized Manitoba scenario includes registration, plates and dealer-use tax',()=>{
  const r=calculate({...PUBLIC_DEFAULTS,taxesMode:'itemized',registrationAnnual:119,plateOneTime:7,dealerUseTaxMonthly:40,purchaseTaxPercent:0},3);
- approx(r.categories[1].annualPerCar,119+7/3+480);
+ approx(r.categories[1].annualPerCar,119+7/3+480+200*12);
 });
 console.log('All financial model tests passed.');
