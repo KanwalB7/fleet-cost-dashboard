@@ -99,3 +99,8 @@ The public ZIP uses rounded illustrative defaults and contains no original Excel
 - GitHub Pages static site hosting: https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages
 - GitHub Pages publishing configuration: https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site
 - Upload repository files: https://docs.github.com/en/repositories/working-with-files/managing-files/adding-a-file-to-a-repository
+
+
+## Optional financing rate (%)
+
+The dashboard's financing input is an **annual rate per vehicle**, not a fixed monthly dollar expense. Under **Miscellaneous & risk**, choose an annual rate (for example 6%) and check **Include financing interest in comparison**. The model estimates annual interest as vehicle purchase price × annual rate/100. A $25,000 vehicle at 6% gives $1,500/year ($125/month); forty vehicles add $60,000/year to modeled ownership costs. The checkbox is off by default, preserving the supplied no-financing base case. This is a flat original-purchase-price proxy; actual financing with declining principal and payments requires a separate amortization schedule. Old uploaded scenario files using `interestMonthly` are not carried forward to the new field.
